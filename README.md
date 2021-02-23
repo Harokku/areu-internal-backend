@@ -1,2 +1,4 @@
 # areu-internal-backend
-Internal infrastructure backend
+SOREU Laghi Internal infrastructure backend
+
+...wip
