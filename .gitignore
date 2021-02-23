@@ -14,5 +14,10 @@
 # Dependency directories (remove the comment below to include it)
 # vendor/
 
-#Ide settings
+#.env file
+.env
+# Ide settings
 .idea
+
+# Debug request files
+/requests
