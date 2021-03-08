@@ -4,8 +4,11 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
+	"github.com/gofiber/fiber/v2/middleware/recover"
 	_ "github.com/lib/pq"
+	"internal-backend/router"
 	"internal-backend/utils"
 	"log"
 	"time"
@@ -21,6 +24,7 @@ func main() {
 		port  string //server port from env
 		dbUrl string //database url
 		conn  *sql.DB
+		_     string //JWT secret
 	)
 
 	log.Printf("Starting environment init...")
@@ -43,6 +47,13 @@ func main() {
 		log.Fatalf("Fatal error setting database url: %v", err)
 	}
 	log.Printf("DB url set")
+
+	// Read secret from env
+	_, err = utils.ReadEnv("SECRET")
+	if err != nil {
+		log.Fatalf("Fatal error setting secret: %v", err)
+	}
+	log.Printf("JWT Secret set")
 
 	// -------------------------
 	// DB pool connection
@@ -81,11 +92,12 @@ func main() {
 // Create a new fiber app and define routes
 func fiberApp() *fiber.App {
 	var (
-		// err error
 		app *fiber.App
 	)
 	app = fiber.New()
-	app.Use(logger.New())
+	app.Use(logger.New())  //logger init
+	app.Use(cors.New())    //CORS init
+	app.Use(recover.New()) //recover init
 
 	// -------------------------
 	// Static routes
@@ -100,6 +112,11 @@ func fiberApp() *fiber.App {
 	app.Get("/ping", func(ctx *fiber.Ctx) error {
 		return ctx.SendString("pong")
 	})
+
+	// -------------------------
+	// Router init (config in router pkg)
+	// -------------------------
+	router.SetupRoutes(app)
 
 	return app
 }

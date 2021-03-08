@@ -25,7 +25,7 @@ func TestReadEnv(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name:    "Varialbe not set",
+			name:    "Variable not set",
 			args:    args{s: "NOTSET"},
 			want:    "",
 			wantErr: true,
