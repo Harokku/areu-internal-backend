@@ -9,9 +9,12 @@ SOREU Laghi Internal infrastructure backend
 
 ### Environment file
 
-create a .env file in root folder, YAML format supported
+You must define Env variables, actually read from local env
 
 #### Parameters
 
 `PORT: {number} <- server port number`
+`SECRET: {string} <- JWT sign secret`
+`DATABASE_URL: {string} <- DB connection url`
+`DOC_PATH: {string} <- Document share root`
 
