@@ -1,16 +1,17 @@
 package handler
 
 import (
-	"github.com/dgrijalva/jwt-go"
 	"github.com/gofiber/fiber/v2"
-	"internal-backend/utils"
-	"time"
+	"internal-backend/auth"
+	"internal-backend/database"
 )
 
 func Login(ctx *fiber.Ctx) error {
 	var (
 		err    error
-		secret string //jwt secret from env
+		u      database.User          //User retrieved from db
+		claims map[string]interface{} //Claims to be added to jwt
+		t      string                 //Signed token
 	)
 	// Represent username and password
 	type LoginInput struct {
@@ -25,35 +26,37 @@ func Login(ctx *fiber.Ctx) error {
 		return ctx.SendStatus(fiber.StatusUnauthorized)
 	}
 
-	// Check user/pass validity vs DB
-	// TODO: implement DB interaction
-	// FIXME: remove dummy auth
-	if input.Identity != "user" || input.Password != "pass" {
+	// -------------------------
+	// Check user/pass vs db
+	// -------------------------
+
+	// Get user's data from db
+	err = u.Get(input.Identity)
+	if err != nil {
+		// TODO: implement error logging
+		return ctx.SendStatus(fiber.StatusNotFound)
+	}
+
+	// Check if password match to db
+	if !auth.ComparePassword(u.Password, input.Password) {
+		// TODO: implement error logging
 		return ctx.SendStatus(fiber.StatusUnauthorized)
 	}
 
-	// Create new token with claims
-	token := jwt.New(jwt.SigningMethodHS256)
-
-	claims := token.Claims.(jwt.MapClaims)
+	// Claims to be added to JWT
+	claims = make(map[string]interface{})
 	claims["identity"] = input.Identity
-	claims["exp"] = time.Now().Add(time.Hour * 12).Unix()
-
-	// Read secret from env
-	secret, err = utils.ReadEnv("SECRET")
-	if err != nil {
-		// TODO: implement error logging
-		return ctx.SendStatus(fiber.StatusInternalServerError)
-	}
+	claims["name"] = u.Name
+	claims["surname"] = u.Surname
 
 	// Sign token
-	t, err := token.SignedString([]byte(secret))
+	t, err = auth.CreateJWT(claims)
 	if err != nil {
-		// TODO: implement error logging
+		//TODO: implement error logging
 		return ctx.SendStatus(fiber.StatusInternalServerError)
 	}
 
-	// Since all is ok, return json with signed token
+	// All ok, return signed token
 	return ctx.JSON(fiber.Map{
 		"status":  "success",
 		"message": "Success login",

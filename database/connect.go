@@ -7,7 +7,7 @@ import (
 	"log"
 )
 
-var DB *sql.DB
+var DbConnection *sql.DB
 
 func Connect() {
 	var (
@@ -24,23 +24,23 @@ func Connect() {
 	if err != nil {
 		log.Fatalf("Fatal error setting database url: %v", err)
 	}
-	log.Printf("DB url set")
+	log.Printf("DbConnection url set")
 
 	// -------------------------
 	// DB pool connection
 	// -------------------------
-	DB, err = sql.Open("postgres", dbUrl)
+	DbConnection, err = sql.Open("postgres", dbUrl)
 	if err != nil {
 		log.Fatalf("Can't connect to db: %v", err)
 	}
 	log.Printf("Connection string set")
 
-	defer DB.Close()
+	//defer DbConnection.Close()
 
 	// Try ping db to check for availability
-	err = DB.Ping()
+	err = DbConnection.Ping()
 	if err != nil {
 		log.Fatalf("Can't ping database %v", err)
 	}
-	log.Printf("DB correctly pinged")
+	log.Printf("DbConnection correctly pinged")
 }

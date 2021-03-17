@@ -7,6 +7,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	_ "github.com/lib/pq"
+	"internal-backend/crawler"
 	"internal-backend/database"
 	"internal-backend/router"
 	"internal-backend/utils"
@@ -50,6 +51,9 @@ func main() {
 	// -------------------------
 
 	database.Connect()
+	defer database.DbConnection.Close()
+
+	crawler.EnumerateDocuments()
 
 	// -------------------------
 	// Fiber definition and server start
