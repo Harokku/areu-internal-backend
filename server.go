@@ -1,13 +1,13 @@
 package main
 
 import (
-	"database/sql"
 	"fmt"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	_ "github.com/lib/pq"
+	"internal-backend/database"
 	"internal-backend/router"
 	"internal-backend/utils"
 	"log"
@@ -20,18 +20,15 @@ func main() {
 	// -------------------------
 
 	var (
-		err   error
-		port  string //server port from env
-		dbUrl string //database url
-		conn  *sql.DB
-		_     string //JWT secret
+		err  error
+		port string //server port from env
 	)
 
 	log.Printf("Starting environment init...")
 	initStartTime := time.Now() //Startup timer start
 
 	// -------------------------
-	// .env file loading
+	// .env loading
 	// -------------------------
 
 	// Read server port from env
@@ -41,13 +38,6 @@ func main() {
 	}
 	log.Printf("Server port set to: %v", port)
 
-	// Read db url
-	dbUrl, err = utils.ReadEnv("DATABASE_URL")
-	if err != nil {
-		log.Fatalf("Fatal error setting database url: %v", err)
-	}
-	log.Printf("DB url set")
-
 	// Read secret from env
 	_, err = utils.ReadEnv("SECRET")
 	if err != nil {
@@ -56,22 +46,10 @@ func main() {
 	log.Printf("JWT Secret set")
 
 	// -------------------------
-	// DB pool connection
+	// Database connection
 	// -------------------------
-	conn, err = sql.Open("postgres", dbUrl)
-	if err != nil {
-		log.Fatalf("Can't connect to db: %v", err)
-	}
-	log.Printf("Connection string set")
 
-	defer conn.Close()
-
-	// Try ping db to check for availability
-	err = conn.Ping()
-	if err != nil {
-		log.Fatalf("Can't ping database %v", err)
-	}
-	log.Printf("DB correctly pinged")
+	database.Connect()
 
 	// -------------------------
 	// Fiber definition and server start
