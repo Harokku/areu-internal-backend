@@ -1,38 +1,50 @@
 package crawler
 
 import (
+	"errors"
+	"fmt"
 	"internal-backend/database"
+	"internal-backend/utils"
 	"log"
 	"os"
+	"path/filepath"
 )
 
 var (
-// dbMap map[string]string //database hash -> hash:path
+	hashTable map[string]string //database hash -> hash:path
 )
 
 // Walk through filesystem and enumerate found files in db, hashing them
 func EnumerateDocuments() error {
 	var (
-		err error
-		d   []database.Document //Documents retrieved from db
+		err      error
+		docsRoot string //Documents disk path
 	)
 
 	// -------------------------
-	// Dummy db interaction test
+	// Read .env
 	// -------------------------
-	dbDocument := database.Document{} //Db interaction object
-	err = dbDocument.GetAll(&d)
+	docsRoot, err = utils.ReadEnv("DOC_ROOT")
 	if err != nil {
-		log.Printf("Error in crawler/EnumerateDocuments: %v\n", err)
+		log.Fatalf("Error retrieving documents root from env")
+	}
+
+	hashTable, err = database.Document{}.GetHashTable()
+	if err != nil {
+		return errors.New(fmt.Sprintf("crawler/EnumerateDocuments returned error while retrieving hash table from db: %v\n", err))
+	}
+
+	//TODO: Implement filewalker to enum existent files
+	if err = filepath.Walk(docsRoot, addDir); err != nil {
 		return err
 	}
-	log.Printf("Retrieved documents: %v\n", d)
+
 	return nil
-
-	//populate dbMap with actual db state
-
 }
 
+//TODO: Implement function to add file to db after hashing it
 func addDir(path string, fi os.FileInfo, err error) error {
+	fmt.Printf("path: %v\n", path)
+	fmt.Printf("fi: %v\n", fi)
 	return nil
 }

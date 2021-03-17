@@ -18,5 +18,5 @@ You must define Env variables, actually read from local env
 `SECRET: {string} <- JWT sign secret`
 `JWT_EXPIRE: {string} <- JWT expire as number + time mod, ex: 24h`
 `DATABASE_URL: {string} <- DB connection url`
-`DOC_PATH: {string} <- Document share root`
+`DOC_ROOT: {string} <- Document share root`
 
