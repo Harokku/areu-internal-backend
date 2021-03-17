@@ -31,6 +31,6 @@ func (u *User) Get(username string) error {
 	case nil:
 		return nil
 	default:
-		return errors.New(fmt.Sprintf("error retrieveing user from db: %v\n", err))
+		return errors.New(fmt.Sprintf("error retrieving user from db: %v\n", err))
 	}
 }
