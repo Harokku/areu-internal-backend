@@ -31,4 +31,10 @@ func SetupRoutes(app *fiber.App) {
 
 	auth := v1.Group("/auth")
 	auth.Post("/login", handler.Login)
+
+	// -------------------------
+	// Documents
+	// -------------------------
+	docs := v1.Group("/docs")
+	docs.Get("/serveById/:id", handler.Docs{}.ServeById)
 }

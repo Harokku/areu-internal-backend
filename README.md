@@ -20,3 +20,8 @@ You must define Env variables, actually read from local env
 `DATABASE_URL: {string} <- DB connection url`
 `DOC_ROOT: {string} <- Document share root`
 
+## Routes
+
+### Auth
+
+### Docs
