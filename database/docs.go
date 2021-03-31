@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"github.com/lib/pq"
 )
 
 type Document struct {
@@ -115,4 +116,66 @@ func (d Document) GetHashTable() (map[string]string, error) {
 	}
 
 	return hashTable, nil
+}
+
+// Truncate (clean) actual table
+func (d Document) TruncateTable() error {
+	var (
+		err          error
+		sqlStatement string
+	)
+
+	sqlStatement = `TRUNCATE TABLE docs`
+
+	_, err = DbConnection.Exec(sqlStatement)
+	if err != nil {
+		return errors.New(fmt.Sprintf("Error truncating Document table"))
+	}
+
+	return nil
+}
+
+// Bulk create passed in document array
+func (d Document) BulkCreate(docToAdd []Document) error {
+	var (
+		err          error
+		sqlStatement *sql.Stmt //Prepared sql statement
+		txn          *sql.Tx   //DB transaction
+	)
+
+	//Begin new transaction
+	txn, err = DbConnection.Begin()
+	if err != nil {
+		return err
+	}
+
+	//Prepare insert statement
+	sqlStatement, err = txn.Prepare(pq.CopyIn("docs", "hash", "filename", "displayname", "category"))
+
+	//Exec insert for every passed document
+	for _, doc := range docToAdd {
+		_, err = sqlStatement.Exec(doc.Hash, doc.FileName, doc.DisplayName, doc.Category)
+		if err != nil {
+			return err
+		}
+	}
+
+	//Flush actual data
+	_, err = sqlStatement.Exec()
+	if err != nil {
+		return err
+	}
+
+	err = sqlStatement.Close()
+	if err != nil {
+		return err
+	}
+
+	//Execute transaction
+	err = txn.Commit()
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
