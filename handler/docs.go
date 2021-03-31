@@ -9,6 +9,50 @@ import (
 type Docs struct {
 }
 
+//GetAll get all documents info from db
+func (d Docs) GetAll(ctx *fiber.Ctx) error {
+	var (
+		err       error
+		documents []database.Document
+	)
+
+	// Retrieve all documents
+	err = database.Document{}.GetAll(&documents)
+	if err != nil {
+		log.Printf(ErrStringMsg("docs/GetAll while retrieving all documents", err))
+		return ctx.SendStatus(fiber.StatusNotFound)
+	}
+
+	return ctx.JSON(fiber.Map{
+		"status":    "success",
+		"message":   "Retrieved all docs",
+		"retrieved": len(documents),
+		"data":      documents,
+	})
+}
+
+//GetById get single document info by id (id from param)
+func (d Docs) GetById(ctx *fiber.Ctx) error {
+	var (
+		err      error
+		document database.Document
+	)
+
+	// Retrieve document by id
+	err = document.GetById(ctx.Params("id"))
+	if err != nil {
+		log.Printf(ErrStringMsg("docs/GetById while retrieving document", err))
+		return ctx.SendStatus(fiber.StatusNotFound)
+	}
+
+	return ctx.JSON(fiber.Map{
+		"status":  "success",
+		"message": "Retrieved document",
+		"data":    document,
+	})
+}
+
+//ServeById actually retrieve file from server by DB id (id from param)
 func (d Docs) ServeById(ctx *fiber.Ctx) error {
 	var (
 		err   error
@@ -30,5 +74,6 @@ func (d Docs) ServeById(ctx *fiber.Ctx) error {
 		return ctx.SendStatus(fiber.StatusNotFound)
 	}
 
-	return nil
+	// Send file to client
+	return ctx.Download(dInfo.FileName, dInfo.DisplayName)
 }

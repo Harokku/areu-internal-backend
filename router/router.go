@@ -36,5 +36,7 @@ func SetupRoutes(app *fiber.App) {
 	// Documents
 	// -------------------------
 	docs := v1.Group("/docs")
+	docs.Get("/", handler.Docs{}.GetAll)
+	docs.Get("/:id", handler.Docs{}.GetById)
 	docs.Get("/serveById/:id", handler.Docs{}.ServeById)
 }
