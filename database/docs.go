@@ -13,6 +13,7 @@ type Document struct {
 	FileName    string `json:"file_name"`    //Document filename (full path)
 	DisplayName string `json:"display_name"` //Document displayed name
 	Category    string `json:"category"`     //Document category (based on path)
+	IsDir       bool   `json:"is_dir"`       //True if file is a directory
 }
 
 // Get all documents
@@ -23,7 +24,7 @@ func (d Document) GetAll(dest *[]Document) error {
 		sqlStatement string
 	)
 
-	sqlStatement = `select id,hash,filename,displayname,category from docs`
+	sqlStatement = `select id,hash,filename,displayname,category,"isDir" from docs`
 
 	rows, err = DbConnection.Query(sqlStatement)
 	if err != nil {
@@ -34,7 +35,7 @@ func (d Document) GetAll(dest *[]Document) error {
 
 	for rows.Next() {
 		var d Document
-		err = rows.Scan(&d.Id, &d.Hash, &d.FileName, &d.DisplayName, &d.Category)
+		err = rows.Scan(&d.Id, &d.Hash, &d.FileName, &d.DisplayName, &d.Category, &d.IsDir)
 		if err != nil {
 			return errors.New(fmt.Sprintf("Error scanning row: %v\n", err))
 		}
@@ -52,10 +53,10 @@ func (d *Document) GetByHash(hash string) error {
 		sqlStatement string
 	)
 
-	sqlStatement = `select id,hash,filename,displayname,category from docs where hash=$1`
+	sqlStatement = `select id,hash,filename,displayname,category,"isDir" from docs where hash=$1`
 
 	row = DbConnection.QueryRow(sqlStatement, hash)
-	switch err = row.Scan(&d.Id, &d.Hash, &d.FileName, &d.DisplayName, &d.Category); err {
+	switch err = row.Scan(&d.Id, &d.Hash, &d.FileName, &d.DisplayName, &d.Category, &d.IsDir); err {
 	case sql.ErrNoRows:
 		return errors.New("no row where retrieved")
 	case nil:
@@ -73,10 +74,10 @@ func (d *Document) GetById(id string) error {
 		sqlStatement string
 	)
 
-	sqlStatement = `select id,hash,filename,displayname,category from docs where id=$1`
+	sqlStatement = `select id,hash,filename,displayname,category,"isDir" from docs where id=$1`
 
 	row = DbConnection.QueryRow(sqlStatement, id)
-	switch err = row.Scan(&d.Id, &d.Hash, &d.FileName, &d.DisplayName, &d.Category); err {
+	switch err = row.Scan(&d.Id, &d.Hash, &d.FileName, &d.DisplayName, &d.Category, &d.IsDir); err {
 	case sql.ErrNoRows:
 		return errors.New("no row where retrieved")
 	case nil:
@@ -150,11 +151,11 @@ func (d Document) BulkCreate(docToAdd []Document) error {
 	}
 
 	//Prepare insert statement
-	sqlStatement, err = txn.Prepare(pq.CopyIn("docs", "hash", "filename", "displayname", "category"))
+	sqlStatement, err = txn.Prepare(pq.CopyIn("docs", "hash", "filename", "displayname", "category", "isDir"))
 
 	//Exec insert for every passed document
 	for _, doc := range docToAdd {
-		_, err = sqlStatement.Exec(doc.Hash, doc.FileName, doc.DisplayName, doc.Category)
+		_, err = sqlStatement.Exec(doc.Hash, doc.FileName, doc.DisplayName, doc.Category, doc.IsDir)
 		if err != nil {
 			return err
 		}

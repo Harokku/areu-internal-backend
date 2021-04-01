@@ -32,8 +32,8 @@ You must define Env variables, actually read from local env
 
 Root `/docs`
 
-GET `/ <- Get all documents info`
+GET `docs/ <- Get all documents info`
 
-GET `/:id <- Get single document info by passed DB id`
+GET `docs/:id <- Get single document info by passed DB id`
 
-GET `serveById/:id <- Download file by passed DB id`
+GET `docs/serveById/:id <- Download file by passed DB id`

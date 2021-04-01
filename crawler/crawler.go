@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -19,8 +20,9 @@ var (
 // Walk through filesystem and enumerate found files in doc root, hashing them and building dictionary
 func EnumerateDocuments() error {
 	var (
-		err     error
-		docRoot string //Documents disk path
+		err          error
+		docRoot      string   //Documents disk path from env
+		docRootArray []string //Documents array og path to check
 	)
 	log.Printf("Starting enumerating documents...")
 	enumerateStartTime := time.Now()
@@ -32,6 +34,7 @@ func EnumerateDocuments() error {
 	if err != nil {
 		log.Fatalf("Error retrieving documents root from env")
 	}
+	docRootArray = strings.Split(docRoot, "|")
 
 	// -------------------------
 	// Walk documents hierarchy and process files
@@ -41,8 +44,12 @@ func EnumerateDocuments() error {
 	documentObject = []database.Document{}
 
 	// Enumerate files and create document object to be added to db
-	if err = filepath.Walk(docRoot, addFile); err != nil {
-		return err
+	//
+	// Expand input array and check all path
+	for _, p := range docRootArray {
+		if err = filepath.Walk(p, addFile(p)); err != nil {
+			return err
+		}
 	}
 
 	// Truncate document table for fresh start
@@ -64,42 +71,62 @@ func EnumerateDocuments() error {
 }
 
 // If file isn-t a dire process it extracting: category, display name, path and SHA-1
-func addFile(path string, fi os.FileInfo, err error) error {
-	var (
-		category     string            //Calculated category based on path
-		displayName  string            //Calculated display name based on filename
-		sha1Checksum string            //SHA-1 filename hash
-		newDoc       database.Document //New document entry to append
-	)
+func addFile(r string) filepath.WalkFunc {
+	return func(path string, fi os.FileInfo, err error) error {
+		var (
+			category     string            //Calculated category based on path
+			displayName  string            //Calculated display name based on filename
+			sha1Checksum string            //SHA-1 filename hash
+			newDoc       database.Document //New document entry to append
+		)
 
-	// Check if file is not dir and process it
-	if !fi.IsDir() {
+		// Check if file is not dir and process it
+		if fi.IsDir() {
+			//Call helper func to extract category from path as relative path from document root
+			category, err = getCategory(r, path)
+			if err != nil {
+				log.Printf("error retrieving category: %v\n", err)
+			}
 
-		//Call helper func to extract category from path as relative path from document root
-		category, err = getCategory(path)
-		if err != nil {
-			log.Printf("error retrieving category: %v\n", err)
+			//Call helper func to extract display name from path
+			displayName = getDisplayNameFromPath(path)
+			if err != nil {
+				log.Printf("error retrieving display name: %v\n", err)
+			}
+
+			//Add info to documentObject array
+			newDoc.FileName = path
+			newDoc.DisplayName = displayName
+			newDoc.Category = category
+			newDoc.IsDir = true
+			documentObject = append(documentObject, newDoc)
+		} else {
+			//Call helper func to extract category from path as relative path from document root
+			category, err = getCategory(r, path)
+			if err != nil {
+				log.Printf("error retrieving category: %v\n", err)
+			}
+
+			//Call helper func to extract display name from path
+			displayName = getDisplayNameFromPath(path)
+			if err != nil {
+				log.Printf("error retrieving display name: %v\n", err)
+			}
+
+			//Call helper func to calculate SHA-1 hash from file
+			sha1Checksum, err = getSha1(path)
+			if err != nil {
+				log.Printf("error calculating SHA-1 from file")
+			}
+
+			//Add info to documentObject array
+			newDoc.Hash = sha1Checksum
+			newDoc.FileName = path
+			newDoc.DisplayName = displayName
+			newDoc.Category = category
+			documentObject = append(documentObject, newDoc)
 		}
 
-		//Call helper func to extract display name from path
-		displayName = getDisplayNameFromPath(path)
-		if err != nil {
-			log.Printf("error retrieving display name: %v\n", err)
-		}
-
-		//Call helper func to calculate SHA-1 hash from file
-		sha1Checksum, err = getSha1(path)
-		if err != nil {
-			log.Printf("error calculating SHA-1 from file")
-		}
-
-		//Add info to documentObject array
-		newDoc.Hash = sha1Checksum
-		newDoc.FileName = path
-		newDoc.DisplayName = displayName
-		newDoc.Category = category
-		documentObject = append(documentObject, newDoc)
+		return nil
 	}
-
-	return nil
 }
