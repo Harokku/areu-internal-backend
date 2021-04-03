@@ -15,20 +15,17 @@ import (
 // getCategory take a filepath and extract category based on path
 func getCategory(r string, p string) (string, error) {
 	var (
-		err error
-		//docRoot  string //Documents disk path
+		err      error
+		basePath string //Base path to strip from root
 		relPath  string //Relative path from doc root
 		category string //Calculated category
 	)
 
-	//Read doc root from env
-	//docRoot, err = utils.ReadEnv("DOC_ROOT")
-	//if err != nil {
-	//	log.Fatalf("Error retrieving documents root from env")
-	//}
+	// Remove last folder from path to use it as category root
+	basePath = filepath.Dir(r)
 
 	// extract relative path from doc root
-	relPath, err = filepath.Rel(r, p)
+	relPath, err = filepath.Rel(basePath, p)
 	if err != nil {
 		return "", errors.New(fmt.Sprintf("crawler/helper/getCategory returned error while processing relative filepath: %v\n", err))
 	}
