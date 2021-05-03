@@ -39,4 +39,10 @@ func SetupRoutes(app *fiber.App) {
 	docs.Get("/", handler.Docs{}.GetAll)
 	docs.Get("/:id", handler.Docs{}.GetById)
 	docs.Get("/serveById/:id", handler.Docs{}.ServeById)
+
+	// -------------------------
+	// Shifts
+	// -------------------------
+	shift := v1.Group("/shift")
+	shift.Get("/serveByPath/:name/:type", handler.Shift{}.ServeByPath)
 }
