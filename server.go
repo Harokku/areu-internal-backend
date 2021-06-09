@@ -6,6 +6,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
+	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 	"internal-backend/crawler"
 	"internal-backend/database"
@@ -31,6 +32,13 @@ func main() {
 	// -------------------------
 	// .env loading
 	// -------------------------
+
+	// Load YAML with godotenv pkg
+	err = godotenv.Load("env.yaml")
+
+	if err != nil {
+		log.Fatalf("Error loading .env file")
+	}
 
 	// Read server port from env
 	port, err = utils.ReadEnv("PORT")
@@ -86,6 +94,7 @@ func fiberApp() *fiber.App {
 	// -------------------------
 
 	app.Static("/", "./static")
+	app.Static("/intranet", "./static/build")
 
 	// -------------------------
 	// Debug routes
@@ -93,6 +102,14 @@ func fiberApp() *fiber.App {
 
 	app.Get("/ping", func(ctx *fiber.Ctx) error {
 		return ctx.SendString("pong")
+	})
+
+	// -------------------------
+	// FrontEnd
+	// -------------------------
+
+	app.Get("/intranet", func(ctx *fiber.Ctx) error {
+		return ctx.SendFile("./static/build/index.html")
 	})
 
 	// -------------------------

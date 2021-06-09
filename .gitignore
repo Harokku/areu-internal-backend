@@ -21,3 +21,6 @@
 
 # Debug request files
 /requests
+
+# React Build
+/static/build/*
