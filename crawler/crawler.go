@@ -17,7 +17,7 @@ var (
 	documentObject []database.Document //Db array to be bulk added
 )
 
-// Walk through filesystem and enumerate found files in doc root, hashing them and building dictionary
+// EnumerateDocuments Walk through filesystem and enumerate found files in doc root, hashing them and building dictionary
 func EnumerateDocuments() error {
 	var (
 		err          error
@@ -48,7 +48,8 @@ func EnumerateDocuments() error {
 	// Expand input array and check all path
 	for _, p := range docRootArray {
 		if err = filepath.Walk(p, addFile(p)); err != nil {
-			return err
+			log.Printf("Error walking documents: %s", err)
+			return filepath.SkipDir
 		}
 	}
 
@@ -70,7 +71,7 @@ func EnumerateDocuments() error {
 	return nil
 }
 
-// If file isn-t a dire process it extracting: category, display name, path and SHA-1
+// If file isn't a dire process it extracting: category, display name, path and SHA-1
 func addFile(r string) filepath.WalkFunc {
 	return func(path string, fi os.FileInfo, err error) error {
 		var (
