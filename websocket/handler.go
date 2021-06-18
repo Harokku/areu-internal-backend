@@ -3,8 +3,6 @@ package websocket
 import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/websocket/v2"
-	"log"
-	"time"
 )
 
 func DocsUpdate() fiber.Handler {
@@ -19,21 +17,24 @@ func DocsUpdate() fiber.Handler {
 		register <- c
 
 		for {
-			messageType, message, err := c.ReadMessage()
+			var message map[string]interface{}
+			err := c.ReadJSON(&message)
 			if err != nil {
 				if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-					log.Printf("%s - DocsUpdate WS read error: %s", time.Now().Format(time.ANSIC), err)
+					logErr(c, err, "DocsUpdate WS read error")
+				} else {
+					logErr(c, err, "DocsUpdate WS error")
 				}
 				return // Call defer and close the connection
 			}
 
 			//TODO: Remove in production DEBUG only
-			if messageType == websocket.TextMessage {
-				// Broadcast the received message
-				Broadcast <- string(message)
-			} else {
-				log.Println("websocket message received of type", messageType)
-			}
+			//if messageType == websocket.TextMessage {
+			// Broadcast the received message
+			Broadcast <- message
+			//} else {
+			//	log.Println("websocket message received of type", messageType)
+			//}
 		}
 	})
 }

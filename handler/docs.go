@@ -25,7 +25,9 @@ func (d Docs) GetAll(ctx *fiber.Ctx) error {
 	}
 
 	//TODO: Remove in production DEBUG only
-	websocket.Broadcast <- "Requested new document root"
+	websocket.Broadcast <- fiber.Map{
+		"data": documents,
+	}
 
 	return ctx.JSON(fiber.Map{
 		"status":    "success",

@@ -54,6 +54,7 @@ func SetupRoutes(app *fiber.App) {
 	ws := v1.Group("/ws")
 	ws.Use(func(ctx *fiber.Ctx) error {
 		if websocket.IsWebSocketUpgrade(ctx) {
+			ctx.Locals("remoteIp", ctx.IP())
 			return ctx.Next()
 		}
 		return ctx.SendStatus(fiber.StatusUpgradeRequired)
