@@ -3,6 +3,7 @@ package handler
 import (
 	"github.com/gofiber/fiber/v2"
 	"internal-backend/database"
+	"internal-backend/websocket"
 	"log"
 )
 
@@ -22,6 +23,9 @@ func (d Docs) GetAll(ctx *fiber.Ctx) error {
 		log.Printf(ErrStringMsg("docs/GetAll while retrieving all documents", err))
 		return ctx.SendStatus(fiber.StatusNotFound)
 	}
+
+	//TODO: Remove in production DEBUG only
+	websocket.Broadcast <- "Requested new document root"
 
 	return ctx.JSON(fiber.Map{
 		"status":    "success",

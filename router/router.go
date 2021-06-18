@@ -2,7 +2,9 @@ package router
 
 import (
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/websocket/v2"
 	"internal-backend/handler"
+	websocket2 "internal-backend/websocket"
 )
 
 func SetupRoutes(app *fiber.App) {
@@ -45,4 +47,16 @@ func SetupRoutes(app *fiber.App) {
 	// -------------------------
 	shift := v1.Group("/shift")
 	shift.Get("/serveByPath/:name/:type", handler.Shift{}.ServeByPath)
+
+	// -------------------------
+	// Websocket endpoints
+	// -------------------------
+	ws := v1.Group("/ws")
+	ws.Use(func(ctx *fiber.Ctx) error {
+		if websocket.IsWebSocketUpgrade(ctx) {
+			return ctx.Next()
+		}
+		return ctx.SendStatus(fiber.StatusUpgradeRequired)
+	})
+	ws.Get("/", websocket2.DocsUpdate())
 }

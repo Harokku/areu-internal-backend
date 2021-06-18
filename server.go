@@ -12,6 +12,7 @@ import (
 	"internal-backend/database"
 	"internal-backend/router"
 	"internal-backend/utils"
+	"internal-backend/websocket"
 	"log"
 	"time"
 )
@@ -68,6 +69,11 @@ func main() {
 	// -------------------------
 
 	app := fiberApp()
+
+	// -------------------------
+	// Websocket hub start in separate goroutine
+	// -------------------------
+	go websocket.RunHub()
 
 	initDuration := time.Since(initStartTime) //calculate total startup time
 	log.Printf("Enviromnent initialized in %s", initDuration)
