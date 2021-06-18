@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/radovskyb/watcher"
 	"internal-backend/utils"
+	"internal-backend/websocket"
 	"log"
 	"strings"
 	"time"
@@ -32,7 +33,7 @@ func WatchRootFromEnv() error {
 	// watcher config
 	// -------------------------
 
-	w.SetMaxEvents(1)
+	w.SetMaxEvents(2)
 	w.IgnoreHiddenFiles(true)
 	w.FilterOps(watcher.Create, watcher.Remove, watcher.Rename, watcher.Move)
 
@@ -43,6 +44,11 @@ func WatchRootFromEnv() error {
 			case event := <-w.Event:
 				log.Printf(" - | FileWatcher Event |\t%v", event)
 				EnumerateDocuments()
+				websocket.Broadcast <- map[string]interface{}{
+					"id":        "Filewatcher event",
+					"operation": fmt.Sprint(event.Op),
+					"filename":  fmt.Sprint(event.FileInfo.Name()),
+				}
 			case err := <-w.Error:
 				log.Fatalln(err)
 			case <-w.Closed:
