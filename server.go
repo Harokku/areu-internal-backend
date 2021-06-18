@@ -62,7 +62,10 @@ func main() {
 	database.Connect()
 	defer database.DbConnection.Close()
 
-	crawler.EnumerateDocuments()
+	err = crawler.EnumerateDocuments()
+	if err != nil {
+		log.Fatalf("Fatal error during file crawler operation: %s", err)
+	}
 
 	// -------------------------
 	// Fiber definition and server start
@@ -73,7 +76,17 @@ func main() {
 	// -------------------------
 	// Websocket hub start in separate goroutine
 	// -------------------------
+	log.Println("Starting websocket hub")
 	go websocket.RunHub()
+
+	// -------------------------
+	// File change monitor
+	// -------------------------
+	log.Println("Starting filewatcher")
+	err = crawler.WatchRootFromEnv()
+	if err != nil {
+		log.Fatalf("Error starting filewatcher: %s", err)
+	}
 
 	initDuration := time.Since(initStartTime) //calculate total startup time
 	log.Printf("Enviromnent initialized in %s", initDuration)

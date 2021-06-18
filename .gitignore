@@ -24,3 +24,6 @@
 
 # React Build
 /static/build/*
+
+# Debug document root
+/docs/*
