@@ -5,18 +5,20 @@ import (
 	"errors"
 	"fmt"
 	"github.com/lib/pq"
+	"time"
 )
 
 type Document struct {
-	Id          string `json:"id"`           //Document UUID
-	Hash        string `json:"hash"`         //Document hash
-	FileName    string `json:"file_name"`    //Document filename (full path)
-	DisplayName string `json:"display_name"` //Document displayed name
-	Category    string `json:"category"`     //Document category (based on path)
-	IsDir       bool   `json:"is_dir"`       //True if file is a directory
+	Id           string    `json:"id"`            //Document UUID
+	Hash         string    `json:"hash"`          //Document hash
+	FileName     string    `json:"file_name"`     //Document filename (full path)
+	DisplayName  string    `json:"display_name"`  //Document displayed name
+	Category     string    `json:"category"`      //Document category (based on path)
+	IsDir        bool      `json:"is_dir"`        //True if file is a directory
+	CreationTime time.Time `json:"creation_date"` //Document creation timestamp
 }
 
-// Get all documents
+// GetAll Get all documents
 func (d Document) GetAll(dest *[]Document) error {
 	var (
 		err          error
@@ -24,7 +26,7 @@ func (d Document) GetAll(dest *[]Document) error {
 		sqlStatement string
 	)
 
-	sqlStatement = `select id,hash,filename,displayname,category,"isDir" from docs`
+	sqlStatement = `select id,hash,filename,displayname,category,"isDir",creationtime from docs`
 
 	rows, err = DbConnection.Query(sqlStatement)
 	if err != nil {
@@ -35,7 +37,7 @@ func (d Document) GetAll(dest *[]Document) error {
 
 	for rows.Next() {
 		var d Document
-		err = rows.Scan(&d.Id, &d.Hash, &d.FileName, &d.DisplayName, &d.Category, &d.IsDir)
+		err = rows.Scan(&d.Id, &d.Hash, &d.FileName, &d.DisplayName, &d.Category, &d.IsDir, &d.CreationTime)
 		if err != nil {
 			return errors.New(fmt.Sprintf("Error scanning row: %v\n", err))
 		}
@@ -45,7 +47,7 @@ func (d Document) GetAll(dest *[]Document) error {
 	return nil
 }
 
-// Get document by hash
+// GetByHash Get document by hash
 func (d *Document) GetByHash(hash string) error {
 	var (
 		err          error
@@ -53,10 +55,10 @@ func (d *Document) GetByHash(hash string) error {
 		sqlStatement string
 	)
 
-	sqlStatement = `select id,hash,filename,displayname,category,"isDir" from docs where hash=$1`
+	sqlStatement = `select id,hash,filename,displayname,category,"isDir",creationtime from docs where hash=$1`
 
 	row = DbConnection.QueryRow(sqlStatement, hash)
-	switch err = row.Scan(&d.Id, &d.Hash, &d.FileName, &d.DisplayName, &d.Category, &d.IsDir); err {
+	switch err = row.Scan(&d.Id, &d.Hash, &d.FileName, &d.DisplayName, &d.Category, &d.IsDir, &d.CreationTime); err {
 	case sql.ErrNoRows:
 		return errors.New("no row where retrieved")
 	case nil:
@@ -66,7 +68,7 @@ func (d *Document) GetByHash(hash string) error {
 	}
 }
 
-// Get document by id
+// GetById Get document by id
 func (d *Document) GetById(id string) error {
 	var (
 		err          error
@@ -74,10 +76,10 @@ func (d *Document) GetById(id string) error {
 		sqlStatement string
 	)
 
-	sqlStatement = `select id,hash,filename,displayname,category,"isDir" from docs where id=$1`
+	sqlStatement = `select id,hash,filename,displayname,category,"isDir",creationtime from docs where id=$1`
 
 	row = DbConnection.QueryRow(sqlStatement, id)
-	switch err = row.Scan(&d.Id, &d.Hash, &d.FileName, &d.DisplayName, &d.Category, &d.IsDir); err {
+	switch err = row.Scan(&d.Id, &d.Hash, &d.FileName, &d.DisplayName, &d.Category, &d.IsDir, &d.CreationTime); err {
 	case sql.ErrNoRows:
 		return errors.New("no row where retrieved")
 	case nil:
@@ -87,7 +89,7 @@ func (d *Document) GetById(id string) error {
 	}
 }
 
-// Build hash table in form of hash:path
+// GetHashTable Build hash table in form of hash:path
 func (d Document) GetHashTable() (map[string]string, error) {
 	var (
 		err          error
@@ -119,7 +121,7 @@ func (d Document) GetHashTable() (map[string]string, error) {
 	return hashTable, nil
 }
 
-// Truncate (clean) actual table
+// TruncateTable Truncate (clean) actual table
 func (d Document) TruncateTable() error {
 	var (
 		err          error
@@ -136,7 +138,7 @@ func (d Document) TruncateTable() error {
 	return nil
 }
 
-// Bulk create passed in document array
+// BulkCreate Bulk create passed in document array
 func (d Document) BulkCreate(docToAdd []Document) error {
 	var (
 		err          error
@@ -151,11 +153,11 @@ func (d Document) BulkCreate(docToAdd []Document) error {
 	}
 
 	//Prepare insert statement
-	sqlStatement, err = txn.Prepare(pq.CopyIn("docs", "hash", "filename", "displayname", "category", "isDir"))
+	sqlStatement, err = txn.Prepare(pq.CopyIn("docs", "hash", "filename", "displayname", "category", "isDir", "creationtime"))
 
 	//Exec insert for every passed document
 	for _, doc := range docToAdd {
-		_, err = sqlStatement.Exec(doc.Hash, doc.FileName, doc.DisplayName, doc.Category, doc.IsDir)
+		_, err = sqlStatement.Exec(doc.Hash, doc.FileName, doc.DisplayName, doc.Category, doc.IsDir, doc.CreationTime)
 		if err != nil {
 			return err
 		}

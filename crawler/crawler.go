@@ -100,6 +100,7 @@ func addFile(r string) filepath.WalkFunc {
 			newDoc.DisplayName = displayName
 			newDoc.Category = category
 			newDoc.IsDir = true
+			newDoc.CreationTime = fi.ModTime()
 			documentObject = append(documentObject, newDoc)
 		} else {
 			//Call helper func to extract category from path as relative path from document root
@@ -125,6 +126,7 @@ func addFile(r string) filepath.WalkFunc {
 			newDoc.FileName = path
 			newDoc.DisplayName = displayName
 			newDoc.Category = category
+			newDoc.CreationTime = fi.ModTime()
 			documentObject = append(documentObject, newDoc)
 		}
 

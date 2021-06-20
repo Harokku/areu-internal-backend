@@ -27,14 +27,6 @@ func DocsUpdate() fiber.Handler {
 				}
 				return // Call defer and close the connection
 			}
-
-			//TODO: Remove in production DEBUG only
-			//if messageType == websocket.TextMessage {
-			// Broadcast the received message
-			Broadcast <- message
-			//} else {
-			//	log.Println("websocket message received of type", messageType)
-			//}
 		}
 	})
 }

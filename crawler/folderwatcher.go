@@ -64,12 +64,6 @@ func WatchRootFromEnv() error {
 		}
 	}
 
-	// Print a list of all of the files and folders currently
-	// being watched and their paths.
-	for path, f := range w.WatchedFiles() {
-		fmt.Printf("%s: %s\n", path, f.Name())
-	}
-
 	// Start the watching process - it'll check for changes every 1000ms.
 	go w.Start(time.Millisecond * 1000)
 

@@ -56,7 +56,7 @@ func main() {
 	log.Printf("JWT Secret set")
 
 	// -------------------------
-	// Database connection
+	// Database connection and initi
 	// -------------------------
 
 	database.Connect()
