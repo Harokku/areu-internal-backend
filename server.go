@@ -82,11 +82,19 @@ func main() {
 	// -------------------------
 	// File change monitor
 	// -------------------------
-	log.Println("Starting filewatcher")
+	log.Println("Starting data table watcher...")
+	err = crawler.WatchDataTableFromEnv()
+	if err != nil {
+		log.Fatalf("Error starting data table watcher: %s", err)
+	}
+	log.Println("Data table watcher initialized")
+
+	log.Println("Starting filewatcher...")
 	err = crawler.WatchRootFromEnv()
 	if err != nil {
 		log.Fatalf("Error starting filewatcher: %s", err)
 	}
+	log.Println("Filewatcher initialized")
 
 	initDuration := time.Since(initStartTime) //calculate total startup time
 	log.Printf("Enviromnent initialized in %s", initDuration)

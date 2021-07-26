@@ -12,8 +12,9 @@ var DbConnection *sql.DB
 
 func Connect() {
 	var (
-		err   error
-		dbUrl string //database url
+		err          error
+		dbUrl        string //database url
+		sqlstatement string //SQL statement to exec
 	)
 
 	// -------------------------
@@ -45,8 +46,12 @@ func Connect() {
 	}
 	log.Printf("DbConnection correctly pinged")
 
-	// Init db if not already done
-	sqlstatement := `
+	// -------------------------
+	// Init DB if not already done
+	// -------------------------
+
+	// Document table
+	sqlstatement = `
 		create table if not exists docs
 		(
 			id           uuid    default gen_random_uuid() not null
@@ -81,5 +86,35 @@ func Connect() {
 	_, err = DbConnection.Exec(sqlstatement)
 	if err != nil {
 		log.Fatalf(fmt.Sprintf("Error creating Document table: %v", err))
+	}
+
+	// Content table
+	sqlstatement = `
+		create table if not exists content_links
+		(
+			id           uuid default gen_random_uuid() not null
+				constraint content_links_pk
+					primary key,
+			display_name varchar                        not null,
+			link         varchar                        not null,
+			sheet_number integer                        not null
+		);
+		
+		comment on table content_links is 'Contain content links to serve to frontend.
+				Auto created reading from config XLSX';
+		
+		comment on column content_links.display_name is 'Link display name as read from XLSX sheet name';
+		
+		comment on column content_links.link is 'Sanitized for URL safety.
+				Calculated from display_name';
+		
+		comment on column content_links.sheet_number is 'XLSX sheet number to read for link content';
+		
+		create unique index if not exists content_links_id_uindex
+			on content_links (id);
+`
+	_, err = DbConnection.Exec(sqlstatement)
+	if err != nil {
+		log.Fatalf(fmt.Sprintf("Error creating Content table: %v", err))
 	}
 }
