@@ -9,6 +9,7 @@ import (
 	"internal-backend/utils"
 	"log"
 	"regexp"
+	"strings"
 	"time"
 )
 
@@ -18,7 +19,7 @@ func sanitizeLink(i string) string {
 	if err != nil {
 		return ""
 	}
-	return re.ReplaceAllString(i, "")
+	return strings.ToLower(re.ReplaceAllString(i, ""))
 }
 
 // dataTableDbUpdate take an XLSX and extract content table reading all sheets

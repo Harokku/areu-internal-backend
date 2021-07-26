@@ -65,6 +65,28 @@ func (c *Content) GetSheetNumber(link string) error {
 	}
 }
 
+// GetDisplayName return sheet number by link
+func (c *Content) GetDisplayName(link string) error {
+	var (
+		err          error
+		row          *sql.Row
+		sqlStatement string
+	)
+
+	sqlStatement = `select display_name from content_links where link=$1 limit 1`
+
+	row = DbConnection.QueryRow(sqlStatement, link)
+	c.Link = link
+	switch err = row.Scan(&c.DisplayName); err {
+	case sql.ErrNoRows:
+		return errors.New("no row where retrieved")
+	case nil:
+		return nil
+	default:
+		return errors.New(fmt.Sprintf("error retrieving link from db: %v\n", err))
+	}
+}
+
 // TruncateTable Truncate (clean) actual table
 func (c Content) TruncateTable() error {
 	var (
