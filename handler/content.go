@@ -12,6 +12,29 @@ import (
 type Content struct {
 }
 
+//GetAll retrieve content index (all links and display name)
+func (c Content) GetAll(ctx *fiber.Ctx) error {
+	var (
+		d   []database.Content
+		err error
+	)
+
+	//Retrieve all contents
+	err = database.Content{}.GetAll(&d)
+	if err != nil {
+		log.Printf(ErrStringMsg("content/GetAll while retrieving all content", err))
+		return ctx.SendStatus(fiber.StatusNotFound)
+	}
+
+	return ctx.JSON(fiber.Map{
+		"status":    "success",
+		"message":   "Retrieved all content indexes",
+		"retrieved": len(d),
+		"data":      d,
+	})
+}
+
+//GetContent retrieve content from XLSX sheet from link
 func (c Content) GetContent(ctx *fiber.Ctx) error {
 	var (
 		f       *excelize.File

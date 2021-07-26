@@ -46,6 +46,7 @@ func SetupRoutes(app *fiber.App) {
 	// Content
 	// -------------------------
 	content := v1.Group("/content")
+	content.Get("/", handler.Content{}.GetAll)
 	content.Get("/:link", handler.Content{}.GetContent)
 
 	// -------------------------
