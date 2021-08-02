@@ -24,6 +24,8 @@ You must define Env variables, actually read from local env
 
 `DOC_ROOT: {string} <- Document share root`
 
+`DATA_TABLE: {string} <- Content data file root`
+
 ## Routes
 
 ### Auth
@@ -36,4 +38,14 @@ GET `docs/ <- Get all documents info`
 
 GET `docs/:id <- Get single document info by passed DB id`
 
+GET `docs/recent/:num <- Get most recent {num} documents`
+
 GET `docs/serveById/:id <- Download file by passed DB id`
+
+### Content
+
+Root `/content`
+
+GET `content/ <- Get content index and links name`
+
+GET `content/:link <- Get single content by passed link name`

@@ -7,6 +7,7 @@ import (
 	"internal-backend/database"
 	"internal-backend/utils"
 	"log"
+	"strings"
 )
 
 type Content struct {
@@ -88,7 +89,10 @@ func (c Content) GetContent(ctx *fiber.Ctx) error {
 	}
 
 	//Extract keys (columns names) from rows
-	keys = rows[1] //According to format definition 2nd row of XLSX file contain column names
+	//According to format definition 2nd row of XLSX file contain column names
+	for _, s := range rows[1] {
+		keys = append(keys, strings.ToLower(s))
+	}
 
 	//Extract JSON item from each row and build map
 	for i, row := range rows {
@@ -96,6 +100,7 @@ func (c Content) GetContent(ctx *fiber.Ctx) error {
 		//Data start on 3rd row
 		if i > 1 {
 			dataRow = make(map[string]interface{})
+			// For each cell create key/value with Column name and cell content
 			for i2, cell := range row {
 				dataRow[keys[i2]] = cell
 			}

@@ -4,6 +4,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"internal-backend/database"
 	"log"
+	"strconv"
 )
 
 type Docs struct {
@@ -76,4 +77,34 @@ func (d Docs) ServeById(ctx *fiber.Ctx) error {
 
 	// Send file to client
 	return ctx.Download(dInfo.FileName, dInfo.DisplayName)
+}
+
+//GetRecent get most {num} recent documents
+func (d Docs) GetRecent(ctx *fiber.Ctx) error {
+	var (
+		err       error
+		num       int                 //How many document to retrieve
+		documents []database.Document //Document info retrieved from db
+	)
+
+	// Try to parse num url, return bad request otherwise
+	num, err = strconv.Atoi(ctx.Params("num"))
+	if err != nil {
+		log.Printf(ErrString("docs/GetRecent while parsing input from body"))
+		return ctx.SendStatus(fiber.StatusBadRequest)
+	}
+
+	// Retrieve last {num} documents
+	err = database.Document{}.GetRecent(num, &documents)
+	if err != nil {
+		log.Printf(ErrStringMsg("docs/GetRecent while retrieving recent documents", err))
+		return ctx.SendStatus(fiber.StatusNotFound)
+	}
+
+	return ctx.JSON(fiber.Map{
+		"status":    "success",
+		"message":   "Retrieved most recent documents",
+		"retrieved": len(documents),
+		"data":      documents,
+	})
 }
