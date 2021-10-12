@@ -51,6 +51,13 @@ func SetupRoutes(app *fiber.App) {
 	content.Get("/:link", handler.Content{}.GetContent)
 
 	// -------------------------
+	// Fleet
+	// -------------------------
+	fleet := v1.Group("/fleet")
+	fleet.Get("/", handler.Fleet{}.GetAll)
+	fleet.Get("/actual", handler.Fleet{}.GetActualTimeRange)
+
+	// -------------------------
 	// Shifts
 	// -------------------------
 	shift := v1.Group("/shift")

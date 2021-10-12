@@ -12,32 +12,6 @@ import (
 	"time"
 )
 
-// convertLabelToTime take a string from Excel sheet name and convert to a valid time object
-func convertLabelToTime(label string) (time.Time, error) {
-	var (
-		parsedTime time.Time
-		err        error
-	)
-	const timeOnly = "15.04"
-
-	parsedTime, err = time.Parse(timeOnly, label)
-	if err != nil {
-		return time.Time{}, err
-	}
-
-	return parsedTime, nil
-}
-
-func convertTimestampToTime(t time.Time) (time.Time, error) {
-	var (
-		h int //Hours
-		m int //Minutes
-	)
-
-	h, m, _ = t.Clock()
-	return convertLabelToTime(fmt.Sprintf("%v.%v", h, m))
-}
-
 // parseSheet parse Excel sheet and aggregate data by column header (1st row)
 func parseSheet(f *excelize.File, sheetName string) (map[string][]string, error) {
 	columnKeyMap := make(map[int]string)        // Hold column number mapped to aggregation header
@@ -112,7 +86,7 @@ func fleetDbUpdate(file string) error {
 				row := database.Fleet{}
 				row.Name = convItem
 				row.ConvType = keyConv
-				row.ActiveFrom, err = convertLabelToTime(s)
+				row.ActiveFrom, err = utils.ConvertLabelToTime(s)
 				if err != nil {
 					return err
 				}

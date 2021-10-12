@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/lib/pq"
+	"internal-backend/utils"
 	"time"
 )
 
@@ -23,11 +24,11 @@ func (c Fleet) GetAll(dest *[]Fleet) error {
 		sqlStatement string
 	)
 
-	sqlStatement = `select id,conv_type,name,active_from from check_convenzioni`
+	sqlStatement = `select id,conv_type,name,active_from from check_convenzioni order by conv_type desc, name asc`
 
 	rows, err = DbConnection.Query(sqlStatement)
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error retrievinf content links: %v\n", err))
+		return errors.New(fmt.Sprintf("Error retrieving fleet info: %v\n", err))
 	}
 
 	defer rows.Close()
@@ -48,7 +49,7 @@ func (c Fleet) GetActiveNow(dest *[]Fleet) error {
 	var (
 		err                           error
 		rows                          *sql.Rows
-		actualRange                   string //Actual time range to retrieve from db built based on now
+		actualRange                   time.Time //Actual time range to retrieve from db built based on now
 		sqlStatement                  string
 		sqlActualRangeStatement       string // Query to get actual time range based on now
 		sqlActualRangeStatementIfNull string // Query to get actual range if precedent is null
@@ -66,13 +67,32 @@ func (c Fleet) GetActiveNow(dest *[]Fleet) error {
 										order by active_from desc
 										limit 1`
 
+	sqlStatement = `select id,conv_type,name,active_from from check_convenzioni where active_from=$1 order by conv_type desc, name asc`
+
 	// Look for actual time range
-
-	sqlStatement = `select id,conv_type,name,active_from from check_convenzioni`
-
-	rows, err = DbConnection.Query(sqlStatement)
+	nowTime, err := utils.ConvertTimestampToTime(time.Now())
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error retrievinf content links: %v\n", err))
+		return err
+	}
+	row := DbConnection.QueryRow(sqlActualRangeStatement, nowTime)
+	switch err = row.Scan(&actualRange); err {
+	case sql.ErrNoRows:
+		row = DbConnection.QueryRow(sqlActualRangeStatementIfNull, nowTime)
+		switch err = row.Scan(&actualRange); err {
+		case sql.ErrNoRows:
+			return errors.New("no row where retrieved")
+		case nil:
+		default:
+			return errors.New(fmt.Sprintf("error retrieving actual time range from db: %v\n", err))
+		}
+	case nil:
+	default:
+		return errors.New(fmt.Sprintf("error retrieving actual time range from db: %v\n", err))
+	}
+
+	rows, err = DbConnection.Query(sqlStatement, actualRange)
+	if err != nil {
+		return errors.New(fmt.Sprintf("Error retrieving fleet info: %v\n", err))
 	}
 
 	defer rows.Close()
