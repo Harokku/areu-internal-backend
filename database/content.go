@@ -65,7 +65,7 @@ func (c *Content) GetSheetNumber(link string) error {
 	}
 }
 
-// GetDisplayName return sheet number by link
+// GetDisplayName return display name by link
 func (c *Content) GetDisplayName(link string) error {
 	var (
 		err          error

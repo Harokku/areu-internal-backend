@@ -96,6 +96,13 @@ func main() {
 	}
 	log.Println("Filewatcher initialized")
 
+	log.Println("Starting fleet watcher")
+	err = crawler.WatchFleetFromEnv()
+	if err != nil {
+		log.Fatalf("Error starting fleet watcher: %s", err)
+	}
+	log.Println("Fleet watcher initialized")
+
 	initDuration := time.Since(initStartTime) //calculate total startup time
 	log.Printf("Enviromnent initialized in %s", initDuration)
 

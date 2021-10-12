@@ -27,7 +27,7 @@ func dataTableDbUpdate(file string) error {
 	var (
 		f             *excelize.File     // excel file to read
 		sheetList     []string           // List of sheets in excel file
-		contentObject []database.Content //DB array to be bulk added
+		contentObject []database.Content // DB array to be bulk added
 		err           error
 	)
 	log.Printf("\033[32mStarting\033[0m enumerating content...")

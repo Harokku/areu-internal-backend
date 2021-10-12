@@ -89,3 +89,12 @@ func getSha1(p string) (string, error) {
 
 	return checksum, nil
 }
+
+// getFirstNChar return first n char from given string (unicode safe)
+func getFirstNChar(s string, n int) string {
+	r := []rune(s)
+	if len(r) > n {
+		return string(r[:n])
+	}
+	return s
+}
