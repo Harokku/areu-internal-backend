@@ -117,4 +117,32 @@ func Connect() {
 	if err != nil {
 		log.Fatalf(fmt.Sprintf("Error creating Content table: %v", err))
 	}
+
+	// Fleet table
+	sqlstatement = `
+		create table if not exists check_convenzioni
+		(
+			id          uuid default gen_random_uuid() not null
+				constraint check_convenzioni_pk
+					primary key,
+			conv_type   varchar                        not null,
+			name        varchar                        not null,
+			active_from timestamp                      not null
+		);
+		
+		comment on table check_convenzioni is 'Tabella appoggio per sistema controllo convenzioni';
+		
+		comment on column check_convenzioni.conv_type is 'Tipo di convenzione assegnata';
+		
+		comment on column check_convenzioni.name is 'Acronimo ente';
+		
+		comment on column check_convenzioni.active_from is 'Fascia oraria di controllo';
+		
+		create unique index if not exists check_convenzioni_id_uindex
+			on check_convenzioni (id);
+`
+	_, err = DbConnection.Exec(sqlstatement)
+	if err != nil {
+		log.Fatalf(fmt.Sprintf("Error creating Content table: %v", err))
+	}
 }

@@ -22,10 +22,10 @@ func getCategory(r string, p string) (string, error) {
 	)
 
 	// Remove last folder from path to use it as category root
-	basePath = filepath.Dir(r)
+	basePath = filepath.Dir(filepath.ToSlash(r))
 
 	// extract relative path from doc root
-	relPath, err = filepath.Rel(basePath, p)
+	relPath, err = filepath.Rel(basePath, filepath.ToSlash(p))
 	if err != nil {
 		return "", errors.New(fmt.Sprintf("crawler/helper/getCategory returned error while processing relative filepath: %v\n", err))
 	}

@@ -71,7 +71,7 @@ func EnumerateDocuments() error {
 	return nil
 }
 
-// If file isn't a dire process it extracting: category, display name, path and SHA-1
+// If file isn't a dire process it, extracting: category, display name, path and SHA-1
 func addFile(r string) filepath.WalkFunc {
 	return func(path string, fi os.FileInfo, err error) error {
 		var (

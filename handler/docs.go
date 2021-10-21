@@ -84,6 +84,7 @@ func (d Docs) GetRecent(ctx *fiber.Ctx) error {
 	var (
 		err       error
 		num       int                 //How many document to retrieve
+		mode      string              //Define which aggregation method to use (all, by category...), default all
 		documents []database.Document //Document info retrieved from db
 	)
 
@@ -94,8 +95,14 @@ func (d Docs) GetRecent(ctx *fiber.Ctx) error {
 		return ctx.SendStatus(fiber.StatusBadRequest)
 	}
 
+	// Try to parse aggregation mode, default all if null or malformed
+	mode = ctx.Query("mode", "all")
+	if mode != "all" && mode != "split" {
+		mode = "all"
+	}
+
 	// Retrieve last {num} documents
-	err = database.Document{}.GetRecent(num, &documents)
+	err = database.Document{}.GetRecent(num, mode, &documents)
 	if err != nil {
 		log.Printf(ErrStringMsg("docs/GetRecent while retrieving recent documents", err))
 		return ctx.SendStatus(fiber.StatusNotFound)

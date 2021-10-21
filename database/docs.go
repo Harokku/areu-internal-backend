@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/lib/pq"
+	"internal-backend/utils"
+	"strings"
 	"time"
 )
 
@@ -89,12 +91,15 @@ func (d *Document) GetById(id string) error {
 	}
 }
 
-// GetRecent Get most recent {num} documents
-func (d Document) GetRecent(num int, dest *[]Document) error {
+// GetRecent Get most recent {num} documents with {mode} aggregation (all, by main category...)
+func (d Document) GetRecent(num int, mode string, dest *[]Document) error {
 	var (
-		err          error
-		rows         *sql.Rows
-		sqlStatement string
+		err                   error
+		rows                  *sql.Rows
+		categories            []string
+		sqlStatement          string
+		sqlFilteredCategories string
+		sqlDistinctCategories string
 	)
 
 	sqlStatement = `select id,hash,filename,displayname,category,"isDir",creationtime
@@ -103,20 +108,73 @@ func (d Document) GetRecent(num int, dest *[]Document) error {
 					order by creationtime desc
 					limit $1`
 
-	rows, err = DbConnection.Query(sqlStatement, num)
-	if err != nil {
-		return errors.New(fmt.Sprintf("Error retrieving documents: %v\n", err))
-	}
+	sqlFilteredCategories = `select id,hash,filename,displayname,category,"isDir",creationtime
+							from docs
+							where "isDir" = false and category like $2
+							order by creationtime desc
+							limit $1`
 
-	defer rows.Close()
+	sqlDistinctCategories = `select distinct category
+							 from docs
+							 where "isDir" = true`
 
-	for rows.Next() {
-		var d Document
-		err = rows.Scan(&d.Id, &d.Hash, &d.FileName, &d.DisplayName, &d.Category, &d.IsDir, &d.CreationTime)
+	switch mode {
+	case "split":
+		//TODO: implement
+
+		//Get distinct categories from db
+		rows, err = DbConnection.Query(sqlDistinctCategories)
 		if err != nil {
-			return errors.New(fmt.Sprintf("Error scanning row: %v\n", err))
+			return errors.New(fmt.Sprintf("Error retrieving documents: %v\n", err))
 		}
-		*dest = append(*dest, d)
+
+		defer rows.Close()
+
+		// Cycle rows and populate root categories array without duplicates
+		for rows.Next() {
+			var c string
+			err = rows.Scan(&c)
+			if err != nil {
+				return errors.New(fmt.Sprintf("Error scanning row: %v\n", err))
+			}
+			// Check if {c} is  "." and already exist in {categories} if not add to it
+			// Before check split category at / and consider only root
+			if c != "." && !utils.Contains(categories, strings.Split(c, "/")[0]) {
+				categories = append(categories, c)
+			}
+		}
+		// For each category retrieve {num} elements from db and add to dest slice to return
+		for _, category := range categories {
+			rows, err = DbConnection.Query(sqlFilteredCategories, num, fmt.Sprintf("%s/%%", category))
+			if err != nil {
+				return errors.New(fmt.Sprintf("Error retrieving documents: %v\n", err))
+			}
+
+			for rows.Next() {
+				var d Document
+				err = rows.Scan(&d.Id, &d.Hash, &d.FileName, &d.DisplayName, &d.Category, &d.IsDir, &d.CreationTime)
+				if err != nil {
+					return errors.New(fmt.Sprintf("Error scanning row: %v\n", err))
+				}
+				*dest = append(*dest, d)
+			}
+		}
+	default:
+		rows, err = DbConnection.Query(sqlStatement, num)
+		if err != nil {
+			return errors.New(fmt.Sprintf("Error retrieving documents: %v\n", err))
+		}
+
+		defer rows.Close()
+
+		for rows.Next() {
+			var d Document
+			err = rows.Scan(&d.Id, &d.Hash, &d.FileName, &d.DisplayName, &d.Category, &d.IsDir, &d.CreationTime)
+			if err != nil {
+				return errors.New(fmt.Sprintf("Error scanning row: %v\n", err))
+			}
+			*dest = append(*dest, d)
+		}
 	}
 
 	return nil
