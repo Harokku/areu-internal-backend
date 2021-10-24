@@ -5,13 +5,13 @@ import (
 	"time"
 )
 
-// convertLabelToTime take a string from Excel sheet name and convert to a valid time object
+// ConvertLabelToTime take a string from Excel sheet name and convert to a valid time object
 func ConvertLabelToTime(label string) (time.Time, error) {
 	var (
 		parsedTime time.Time
 		err        error
 	)
-	const timeOnly = "15.04"
+	const timeOnly = "15.4"
 
 	parsedTime, err = time.Parse(timeOnly, label)
 	if err != nil {

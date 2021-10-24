@@ -131,7 +131,7 @@ func WatchFleetFromEnv() error {
 	// -------------------------
 	// Create starting DB
 	// -------------------------
-	err = fleetDbUpdate(fleetPath)
+	err = fleetDbUpdate(fmt.Sprintf("%sfleet.xlsx", fleetPath))
 	if err != nil {
 		return err
 	}

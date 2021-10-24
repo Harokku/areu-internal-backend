@@ -3,7 +3,9 @@ package handler
 import (
 	"github.com/gofiber/fiber/v2"
 	"internal-backend/database"
+	"internal-backend/utils"
 	"log"
+	"time"
 )
 
 type Fleet struct {
@@ -47,4 +49,27 @@ func (f Fleet) GetActualTimeRange(ctx *fiber.Ctx) error {
 		"retrieved": len(d),
 		"data":      d,
 	})
+}
+
+func (f Fleet) LogExecutedCheck(ctx *fiber.Ctx) error {
+	var (
+		e   utils.Entry
+		err error
+	)
+
+	err = ctx.BodyParser(&e)
+	if err != nil {
+		return ctx.SendStatus(fiber.StatusBadRequest)
+	}
+
+	// Add actual timestamp
+	e.Timestamp = time.Now()
+
+	// Log entry
+	err = e.WriteEntry()
+	if err != nil {
+		return ctx.SendStatus(fiber.StatusInternalServerError)
+	}
+
+	return ctx.SendStatus(fiber.StatusCreated)
 }

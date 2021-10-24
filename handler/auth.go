@@ -23,7 +23,7 @@ func Login(ctx *fiber.Ctx) error {
 
 	// Try to parse user/pass from body, return unauthorized otherwise
 	if err = ctx.BodyParser(&input); err != nil {
-		return ctx.SendStatus(fiber.StatusUnauthorized)
+		return ctx.SendStatus(fiber.StatusBadRequest)
 	}
 
 	// -------------------------
