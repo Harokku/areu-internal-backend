@@ -4,6 +4,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"internal-backend/database"
 	"log"
+	"path/filepath"
 	"strconv"
 )
 
@@ -76,7 +77,7 @@ func (d Docs) ServeById(ctx *fiber.Ctx) error {
 	}
 
 	// Send file to client
-	return ctx.Download(dInfo.FileName, dInfo.DisplayName)
+	return ctx.Download(filepath.FromSlash(dInfo.FileName), dInfo.DisplayName)
 }
 
 //GetRecent get most {num} recent documents

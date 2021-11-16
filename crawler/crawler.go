@@ -96,7 +96,7 @@ func addFile(r string) filepath.WalkFunc {
 			}
 
 			//Add info to documentObject array
-			newDoc.FileName = path
+			newDoc.FileName = filepath.ToSlash(path)
 			newDoc.DisplayName = displayName
 			newDoc.Category = category
 			newDoc.IsDir = true
