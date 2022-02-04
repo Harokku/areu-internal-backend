@@ -7,6 +7,8 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/joho/godotenv"
+	"github.com/jpillora/overseer"
+	"github.com/jpillora/overseer/fetcher"
 	_ "github.com/lib/pq"
 	"internal-backend/crawler"
 	"internal-backend/database"
@@ -14,10 +16,37 @@ import (
 	"internal-backend/utils"
 	"internal-backend/websocket"
 	"log"
+	"runtime"
 	"time"
 )
 
+// Call overseer to monitor for file change and program self restart
 func main() {
+	overseer.Run(overseer.Config{
+		Program: prog,
+		Fetcher: &fetcher.File{
+			Path:     pathByOs(),
+			Interval: 5 * time.Second,
+		},
+	},
+	)
+}
+
+// Detect current running OS and set overseer path accordingly
+func pathByOs() string {
+	os := runtime.GOOS
+	switch os {
+	case "windows":
+		return "./server.exe"
+	default:
+		return "./server"
+	}
+}
+
+// Prog is the actual program to be started
+func prog(state overseer.State) {
+	log.Printf("Overseer state: %t", state.Enabled)
+	log.Printf("App %s is running...", state.ID)
 	// -------------------------
 	// Variable definition
 	// -------------------------
@@ -136,6 +165,10 @@ func fiberApp() *fiber.App {
 
 	app.Get("/ping", func(ctx *fiber.Ctx) error {
 		return ctx.SendString("pong")
+	})
+	app.Get("/restart", func(ctx *fiber.Ctx) error {
+		overseer.Restart()
+		return ctx.SendString("Service restarting...")
 	})
 
 	// -------------------------
