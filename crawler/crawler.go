@@ -71,6 +71,20 @@ func EnumerateDocuments() error {
 	return nil
 }
 
+// TODO: implement not hard coded version
+// Check if filename is on the excluded list
+func checkExcludedFile(filename string) bool {
+	excludedFiles := map[string]bool{
+		"thumbs.db": true,
+		".DS_Store": true,
+	}
+
+	if excludedFiles[filename] {
+		return true
+	}
+	return false
+}
+
 // If file isn't a dire process it, extracting: category, display name, path and SHA-1
 func addFile(r string) filepath.WalkFunc {
 	return func(path string, fi os.FileInfo, err error) error {
@@ -80,6 +94,11 @@ func addFile(r string) filepath.WalkFunc {
 			sha1Checksum string            //SHA-1 filename hash
 			newDoc       database.Document //New document entry to append
 		)
+
+		// Check if file is in avoidance list and return
+		if checkExcludedFile(filepath.Base(path)) {
+			return nil
+		}
 
 		// Check if file is not dir and process it
 		if fi.IsDir() {

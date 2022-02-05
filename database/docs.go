@@ -145,6 +145,7 @@ func (d Document) GetRecent(num int, mode string, dest *[]Document) error {
 		}
 		// For each category retrieve {num} elements from db and add to dest slice to return
 		for _, category := range categories {
+			// Query run vs %s/%% to avoid aggregate similar category (eg DOCSrl and DOCSrlombardia)
 			rows, err = DbConnection.Query(sqlFilteredCategories, num, fmt.Sprintf("%s/%%", category))
 			if err != nil {
 				return errors.New(fmt.Sprintf("Error retrieving documents: %v\n", err))
