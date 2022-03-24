@@ -16,6 +16,15 @@ type Fleet struct {
 	ActiveFrom time.Time `json:"active_from"` // Time interval to check for availability
 }
 
+type BacoSnapshoot struct {
+	ConvType string `json:"conv_type"` // Vehicle convention type
+	Name     string `json:"name"`      // Vehicle callsign
+}
+
+// -------------------------
+// Main db function
+// -------------------------
+
 // GetAll Get all fleet data
 func (c Fleet) GetAll(dest *[]Fleet) error {
 	var (
@@ -167,6 +176,44 @@ func (c Fleet) BulkCreate(contentToAdd []Fleet) error {
 	if err != nil {
 		return err
 	}
+
+	return nil
+}
+
+// -------------------------
+// Baco db function
+// -------------------------
+
+// GetSnapshoot return actual fleet state reading last system snapshoot
+// TODO: implement real backend data retrieval
+func (b BacoSnapshoot) GetSnapshoot(dest *[]BacoSnapshoot) error {
+	// Actually return mock data for debugging purpose
+
+	// Mock data
+	*dest = append(*dest, BacoSnapshoot{
+		ConvType: "H24",
+		Name:     "SOSAPP/CRILUR.1a23",
+	})
+	*dest = append(*dest, BacoSnapshoot{
+		ConvType: "H24",
+		Name:     "VOLBEL.23de",
+	})
+	*dest = append(*dest, BacoSnapshoot{
+		ConvType: "H24",
+		Name:     "AZZCAD/VERFIN.9c3d",
+	})
+	*dest = append(*dest, BacoSnapshoot{
+		ConvType: "MSA",
+		Name:     "CO_001.co001",
+	})
+	*dest = append(*dest, BacoSnapshoot{
+		ConvType: "MSA",
+		Name:     "CO_002.co002",
+	})
+	*dest = append(*dest, BacoSnapshoot{
+		ConvType: "MSA",
+		Name:     "CO_004.co004",
+	})
 
 	return nil
 }

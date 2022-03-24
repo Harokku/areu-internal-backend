@@ -57,6 +57,7 @@ func SetupRoutes(app *fiber.App) {
 	fleet.Get("/", handler.Fleet{}.GetAll)
 	fleet.Get("/actual", handler.Fleet{}.GetActualTimeRange)
 	fleet.Post("/logcheck", handler.Fleet{}.LogExecutedCheck)
+	fleet.Get("/checkFleetState", handler.Fleet{}.CheckActualAvailability)
 
 	// -------------------------
 	// Shifts

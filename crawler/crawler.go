@@ -75,8 +75,9 @@ func EnumerateDocuments() error {
 // Check if filename is on the excluded list
 func checkExcludedFile(filename string) bool {
 	excludedFiles := map[string]bool{
-		"thumbs.db": true,
-		".DS_Store": true,
+		"thumbs.db":     true,
+		".DS_Store":     true,
+		"sync_ffs.lock": true,
 	}
 
 	if excludedFiles[filename] {
@@ -117,7 +118,7 @@ func addFile(r string) filepath.WalkFunc {
 			//Add info to documentObject array
 			newDoc.FileName = filepath.ToSlash(path)
 			newDoc.DisplayName = displayName
-			newDoc.Category = category
+			newDoc.Category = strings.ReplaceAll(category, "\\", "/")
 			newDoc.IsDir = true
 			newDoc.CreationTime = fi.ModTime()
 			documentObject = append(documentObject, newDoc)
@@ -144,7 +145,7 @@ func addFile(r string) filepath.WalkFunc {
 			newDoc.Hash = sha1Checksum
 			newDoc.FileName = filepath.ToSlash(path)
 			newDoc.DisplayName = displayName
-			newDoc.Category = category
+			newDoc.Category = strings.ReplaceAll(category, "\\", "/")
 			newDoc.CreationTime = fi.ModTime()
 			documentObject = append(documentObject, newDoc)
 		}

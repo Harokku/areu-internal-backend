@@ -1,6 +1,9 @@
 package handler
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 const (
 	colorReset = "\033[0m"
@@ -19,4 +22,23 @@ func ErrString(m string) string {
 
 func ErrStringMsg(m string, e error) string {
 	return fmt.Sprintf("%s[ERR] %s:%s %s", colorRed, m, colorReset, e)
+}
+
+// ExtractLotto Take a fleet entry and return vehicle callsign and lotto
+func ExtractLotto(item string) (string, string) {
+	var (
+		callsign string
+		lotto    string
+		found    bool
+	)
+	callsign, lotto, found = strings.Cut(strings.TrimSpace(item), ".")
+	if found {
+		return callsign, lotto
+	}
+	return "", ""
+}
+
+// JoinCallsignLotto return joined vehicle id
+func JoinCallsignLotto(callsign, lotto string) string {
+	return strings.Join([]string{strings.TrimSpace(callsign), strings.TrimSpace(lotto)}, ".")
 }

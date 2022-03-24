@@ -8,7 +8,6 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/joho/godotenv"
 	"github.com/jpillora/overseer"
-	"github.com/jpillora/overseer/fetcher"
 	_ "github.com/lib/pq"
 	"internal-backend/crawler"
 	"internal-backend/database"
@@ -16,12 +15,11 @@ import (
 	"internal-backend/utils"
 	"internal-backend/websocket"
 	"log"
-	"runtime"
 	"time"
 )
 
 // Call overseer to monitor for file change and program self restart
-func main() {
+/*func main() {
 	overseer.Run(overseer.Config{
 		Program: prog,
 		Fetcher: &fetcher.File{
@@ -45,8 +43,10 @@ func pathByOs() string {
 
 // Prog is the actual program to be started
 func prog(state overseer.State) {
-	log.Printf("Overseer state: %t", state.Enabled)
-	log.Printf("App %s is running...", state.ID)
+*/
+func main() {
+	//log.Printf("Overseer state: %t", state.Enabled)
+	//log.Printf("App %s is running...", state.ID)
 	// -------------------------
 	// Variable definition
 	// -------------------------
