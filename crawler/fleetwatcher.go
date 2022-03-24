@@ -149,8 +149,14 @@ func WatchFleetFromEnv() error {
 		for {
 			select {
 			case event := <-w.Event:
+				var err error
 				log.Printf(" - | Fleet watcher event |\t%v", event)
-				fleetDbUpdate(event.Path)
+				if event.FileInfo.Name() == "fleet.xlsx" {
+					err = fleetDbUpdate(event.Path)
+					if err != nil {
+						log.Printf("Error updating fleet db: %s", err)
+					}
+				}
 			case err := <-w.Error:
 				log.Fatalln(err)
 			case <-w.Closed:
