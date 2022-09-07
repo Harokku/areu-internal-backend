@@ -122,27 +122,65 @@ func Connect() {
 	sqlstatement = `
 		create table if not exists check_convenzioni
 		(
-			id          uuid default gen_random_uuid() not null
+			id            uuid default gen_random_uuid() not null
 				constraint check_convenzioni_pk
 					primary key,
-			conv_type   varchar                        not null,
-			name        varchar                        not null,
-			active_from timestamp                      not null
+			convenzione   varchar                        not null,
+			ente          varchar                        not null,
+			active_from   timestamp                      not null,
+			stazionamento varchar                        not null
 		);
 		
 		comment on table check_convenzioni is 'Tabella appoggio per sistema controllo convenzioni';
 		
-		comment on column check_convenzioni.conv_type is 'Tipo di convenzione assegnata';
+		comment on column check_convenzioni.convenzione is 'Tipo di convenzione assegnata';
 		
-		comment on column check_convenzioni.name is 'Acronimo ente';
+		comment on column check_convenzioni.ente is 'Acronimo ente';
 		
 		comment on column check_convenzioni.active_from is 'Fascia oraria di controllo';
+		
+		comment on column check_convenzioni.stazionamento is 'Luogo di stazionamento';
 		
 		create unique index if not exists check_convenzioni_id_uindex
 			on check_convenzioni (id);
 `
 	_, err = DbConnection.Exec(sqlstatement)
 	if err != nil {
-		log.Fatalf(fmt.Sprintf("Error creating Content table: %v", err))
+		log.Fatalf(fmt.Sprintf("Error creating Check convenzioni table: %v", err))
+	}
+
+	// Baco DB Table
+	sqlstatement = `
+		create table if not exists "db_Baco"
+		(
+			id            uuid default gen_random_uuid() not null
+				constraint db_baco_pk
+					primary key,
+			ente          varchar,
+			mezzo         varchar,
+			stazionamento varchar,
+			radio         varchar,
+			convenzione   varchar
+		);
+		
+		comment on table "db_Baco" is 'Baco DB export';
+		
+		comment on column "db_Baco".ente is 'Ente di appartenenza';
+		
+		comment on column "db_Baco".mezzo is 'sigra radio completa di eventuale lotto';
+		
+		comment on column "db_Baco".stazionamento is 'Luogo di stazionamento (join da linked table)';
+		
+		comment on column "db_Baco".radio is 'codica radio';
+		
+		comment on column "db_Baco".convenzione is 'Tipo di convenzione';
+		
+		create unique index if not exists db_baco_id_uindex
+			on "db_Baco" (id);
+`
+
+	_, err = DbConnection.Exec(sqlstatement)
+	if err != nil {
+		log.Fatalf(fmt.Sprintf("Error creating Baco DB Table: %v", err))
 	}
 }

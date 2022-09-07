@@ -107,11 +107,11 @@ func (f Fleet) CheckActualAvailability(ctx *fiber.Ctx) error {
 			foundedIndex   int    // actualFleetState founded item index
 			theoreticLotto string // actual theoretic item's lotto to be searched
 		)
-		_, theoreticLotto = ExtractLotto(fleetItem.Name)
+		_, theoreticLotto = ExtractLotto(fleetItem.Ente)
 
 		for iActual, snapshotItem := range actualFleetState {
 			var actualLotto string
-			_, actualLotto = ExtractLotto(snapshotItem.Name)
+			_, actualLotto = ExtractLotto(snapshotItem.Ente)
 			// If found set flag to true and index to actual item to be removed
 			if actualLotto == theoreticLotto {
 				found = true
@@ -126,8 +126,8 @@ func (f Fleet) CheckActualAvailability(ctx *fiber.Ctx) error {
 			actualFleetState = append(actualFleetState[:foundedIndex], actualFleetState[foundedIndex+1:]...)
 		} else {
 			missingFleet = append(missingFleet, database.BacoSnapshoot{
-				ConvType: fleetItem.ConvType,
-				Name:     fleetItem.Name,
+				Convenzione: fleetItem.Convenzione,
+				Ente:        fleetItem.Ente,
 			})
 		}
 	}

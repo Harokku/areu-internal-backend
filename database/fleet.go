@@ -10,15 +10,21 @@ import (
 )
 
 type Fleet struct {
-	Id         string    `json:"id"`          // Vehicle UUID
-	ConvType   string    `json:"conv_type"`   // Vehicle convention type
-	Name       string    `json:"name"`        // Vehicle callsign
-	ActiveFrom time.Time `json:"active_from"` // Time interval to check for availability
+	Id            string    `json:"id"`            // Vehicle UUID
+	Ente          string    `json:"ente"`          // Vehicle callsign
+	Stazionamento string    `json:"stazionamento"` // Vechicle position
+	Convenzione   string    `json:"convenzione"`   // Vehicle convention type
+	ActiveFrom    time.Time `json:"active_from"`   // Time interval to check for availability
 }
 
 type BacoSnapshoot struct {
-	ConvType string `json:"conv_type"` // Vehicle convention type
-	Name     string `json:"name"`      // Vehicle callsign
+	Id            string `json:"id"`            // Vehicle UUID
+	Ente          string `json:"ente"`          // Vehicle callsign
+	Mezzo         string `json:"mezzo"`         // Vehicle name
+	Stazionamento string `json:"stazionamento"` // Vechicle position
+	Convenzione   string `json:"convenzione"`   // Vehicle convention type
+	Radio         string `json:"radio"`         // Vechicle radio id
+
 }
 
 // -------------------------
@@ -33,7 +39,7 @@ func (c Fleet) GetAll(dest *[]Fleet) error {
 		sqlStatement string
 	)
 
-	sqlStatement = `select id,conv_type,name,active_from from check_convenzioni order by conv_type desc, name asc`
+	sqlStatement = `select id,convenzione,ente,active_from from check_convenzioni order by convenzione desc, ente asc`
 
 	rows, err = DbConnection.Query(sqlStatement)
 	if err != nil {
@@ -44,7 +50,7 @@ func (c Fleet) GetAll(dest *[]Fleet) error {
 
 	for rows.Next() {
 		var c Fleet
-		err = rows.Scan(&c.Id, &c.ConvType, &c.Name, &c.ActiveFrom)
+		err = rows.Scan(&c.Id, &c.Convenzione, &c.Ente, &c.ActiveFrom)
 		if err != nil {
 			return errors.New(fmt.Sprintf("Error scanning row: %v\n", err))
 		}
@@ -76,7 +82,7 @@ func (c Fleet) GetActiveNow(dest *[]Fleet) error {
 										order by active_from desc
 										limit 1`
 
-	sqlStatement = `select id,conv_type,name,active_from from check_convenzioni where active_from=$1 order by conv_type desc, name asc`
+	sqlStatement = `select id,convenzione,ente,active_from from check_convenzioni where active_from=$1 order by convenzione desc, ente asc`
 
 	// Look for actual time range
 	nowTime, err := utils.ConvertTimestampToTime(time.Now())
@@ -99,6 +105,7 @@ func (c Fleet) GetActiveNow(dest *[]Fleet) error {
 		return errors.New(fmt.Sprintf("error retrieving actual time range from db: %v\n", err))
 	}
 
+	// Retrieve actual active vehicles
 	rows, err = DbConnection.Query(sqlStatement, actualRange)
 	if err != nil {
 		return errors.New(fmt.Sprintf("Error retrieving fleet info: %v\n", err))
@@ -108,7 +115,7 @@ func (c Fleet) GetActiveNow(dest *[]Fleet) error {
 
 	for rows.Next() {
 		var c Fleet
-		err = rows.Scan(&c.Id, &c.ConvType, &c.Name, &c.ActiveFrom)
+		err = rows.Scan(&c.Id, &c.Convenzione, &c.Ente, &c.Stazionamento, &c.ActiveFrom)
 		if err != nil {
 			return errors.New(fmt.Sprintf("Error scanning row: %v\n", err))
 		}
@@ -150,11 +157,11 @@ func (c Fleet) BulkCreate(contentToAdd []Fleet) error {
 	}
 
 	//Prepare insert statement
-	sqlStatement, err = txn.Prepare(pq.CopyIn("check_convenzioni", "conv_type", "name", "active_from"))
+	sqlStatement, err = txn.Prepare(pq.CopyIn("check_convenzioni", "convenzione", "ente", "active_from", "stazionamento"))
 
 	//Exec insert for every passed content
 	for _, content := range contentToAdd {
-		_, err = sqlStatement.Exec(content.ConvType, content.Name, content.ActiveFrom)
+		_, err = sqlStatement.Exec(content.Convenzione, content.Ente, content.ActiveFrom, content.Stazionamento)
 		if err != nil {
 			return err
 		}
@@ -185,35 +192,92 @@ func (c Fleet) BulkCreate(contentToAdd []Fleet) error {
 // -------------------------
 
 // GetSnapshoot return actual fleet state reading last system snapshoot
-// TODO: implement real backend data retrieval
 func (b BacoSnapshoot) GetSnapshoot(dest *[]BacoSnapshoot) error {
-	// Actually return mock data for debugging purpose
+	var (
+		err          error
+		rows         *sql.Rows
+		sqlStatement string
+	)
 
-	// Mock data
-	*dest = append(*dest, BacoSnapshoot{
-		ConvType: "H24",
-		Name:     "SOSAPP/CRILUR.1a23",
-	})
-	*dest = append(*dest, BacoSnapshoot{
-		ConvType: "H24",
-		Name:     "VOLBEL.23de",
-	})
-	*dest = append(*dest, BacoSnapshoot{
-		ConvType: "H24",
-		Name:     "AZZCAD/VERFIN.9c3d",
-	})
-	*dest = append(*dest, BacoSnapshoot{
-		ConvType: "MSA",
-		Name:     "CO_001.co001",
-	})
-	*dest = append(*dest, BacoSnapshoot{
-		ConvType: "MSA",
-		Name:     "CO_002.co002",
-	})
-	*dest = append(*dest, BacoSnapshoot{
-		ConvType: "MSA",
-		Name:     "CO_004.co004",
-	})
+	sqlStatement = `select id, ente,mezzo,stazionamento,convenzione,radio from "db_Baco" order by convenzione desc , ente asc `
+
+	rows, err = DbConnection.Query(sqlStatement)
+	if err != nil {
+		return errors.New(fmt.Sprintf("Error retrieving BaCo Db snapshot: %v\n", err))
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+		var c BacoSnapshoot
+		err = rows.Scan(&c.Id, &c.Ente, &c.Mezzo, &c.Stazionamento, &c.Convenzione, &c.Radio)
+		if err != nil {
+			return errors.New(fmt.Sprintf("Error retrieving row: %v\n", err))
+		}
+		*dest = append(*dest, c)
+	}
+
+	return nil
+}
+
+// TruncateBaCoTable Truncate (clean) actual table
+func (c BacoSnapshoot) TruncateBaCoTable() error {
+	var (
+		err          error
+		sqlStatement string
+	)
+
+	sqlStatement = `TRUNCATE TABLE "db_Baco"`
+
+	_, err = DbConnection.Exec(sqlStatement)
+	if err != nil {
+		return errors.New(fmt.Sprintf("Error truncating BaCo Snapshoot table"))
+	}
+
+	return nil
+}
+
+// BulkCreateBaCo Bulk create passed in content array
+func (c BacoSnapshoot) BulkCreateBaCo(contentToAdd []BacoSnapshoot) error {
+	var (
+		err          error
+		sqlStatement *sql.Stmt //Prepared sql statement
+		txn          *sql.Tx   //DB transaction
+	)
+
+	//Begin new transaction
+	txn, err = DbConnection.Begin()
+	if err != nil {
+		return err
+	}
+
+	//Prepare insert statement
+	sqlStatement, err = txn.Prepare(pq.CopyIn("db_Baco", "ente", "mezzo", "stazionamento", "convenzione", "radio"))
+
+	//Exec insert for every passed content
+	for _, content := range contentToAdd {
+		_, err = sqlStatement.Exec(content.Ente, content.Mezzo, content.Stazionamento, content.Convenzione, content.Radio)
+		if err != nil {
+			return err
+		}
+	}
+
+	//Flush actual data
+	_, err = sqlStatement.Exec()
+	if err != nil {
+		return err
+	}
+
+	err = sqlStatement.Close()
+	if err != nil {
+		return err
+	}
+
+	//Execute transaction
+	err = txn.Commit()
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

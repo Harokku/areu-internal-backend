@@ -11,7 +11,7 @@ import (
 type Docs struct {
 }
 
-//GetAll get all documents info from db
+// GetAll get all documents info from db
 func (d Docs) GetAll(ctx *fiber.Ctx) error {
 	var (
 		err       error
@@ -33,7 +33,7 @@ func (d Docs) GetAll(ctx *fiber.Ctx) error {
 	})
 }
 
-//GetById get single document info by id (id from param)
+// GetById get single document info by id (id from param)
 func (d Docs) GetById(ctx *fiber.Ctx) error {
 	var (
 		err      error
@@ -54,7 +54,7 @@ func (d Docs) GetById(ctx *fiber.Ctx) error {
 	})
 }
 
-//ServeById actually retrieve file from server by DB id (id from param)
+// ServeById actually retrieve file from server by DB id (id from param)
 func (d Docs) ServeById(ctx *fiber.Ctx) error {
 	var (
 		err   error
@@ -80,7 +80,33 @@ func (d Docs) ServeById(ctx *fiber.Ctx) error {
 	return ctx.Download(filepath.FromSlash(dInfo.FileName), dInfo.DisplayName)
 }
 
-//GetRecent get most {num} recent documents
+// ServeByHash actually retrieve file from server by DB hash (hash from param)
+func (d Docs) ServeByHash(ctx *fiber.Ctx) error {
+	var (
+		err   error
+		hash  string            //Document id to retrieve
+		dInfo database.Document //Document info retrieved from bd
+	)
+
+	hash = ctx.Params("id")
+	// Try to parse id url, return bad request otherwise
+	if hash == "" {
+		log.Printf(ErrString("docs/ServeByHash while parsing input from body"))
+		return ctx.SendStatus(fiber.StatusBadRequest)
+	}
+
+	// Retrieve document meta from db
+	err = dInfo.GetByHash(hash)
+	if err != nil {
+		log.Printf(ErrStringMsg("docs/ServeByHash while retrieving document", err))
+		return ctx.SendStatus(fiber.StatusNotFound)
+	}
+
+	// Send file to client
+	return ctx.Download(filepath.FromSlash(dInfo.FileName), dInfo.DisplayName)
+}
+
+// GetRecent get most {num} recent documents
 func (d Docs) GetRecent(ctx *fiber.Ctx) error {
 	var (
 		err       error

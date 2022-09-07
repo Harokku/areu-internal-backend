@@ -41,7 +41,7 @@ func SetupRoutes(app *fiber.App) {
 	docs.Get("/", handler.Docs{}.GetAll)
 	docs.Get("/:id", handler.Docs{}.GetById)
 	docs.Get("/recent/:num", handler.Docs{}.GetRecent)
-	docs.Get("/serveById/:id", handler.Docs{}.ServeById)
+	docs.Get("/serveById/:id", handler.Docs{}.ServeByHash)
 
 	// -------------------------
 	// Content

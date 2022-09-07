@@ -75,7 +75,7 @@ func EnumerateDocuments() error {
 // Check if filename is on the excluded list
 func checkExcludedFile(filename string) bool {
 	excludedFiles := map[string]bool{
-		"thumbs.db":     true,
+		"Thumbs.db":     true,
 		".DS_Store":     true,
 		"sync_ffs.lock": true,
 	}
@@ -86,7 +86,7 @@ func checkExcludedFile(filename string) bool {
 	return false
 }
 
-// If file isn't a dire process it, extracting: category, display name, path and SHA-1
+// If file isn't a dir process it, extracting: category, display name, path and SHA-1
 func addFile(r string) filepath.WalkFunc {
 	return func(path string, fi os.FileInfo, err error) error {
 		var (

@@ -10,7 +10,7 @@ import (
 type Shift struct {
 }
 
-//checkParam check if passed params are present in the list of accepted
+// checkParam check if passed params are present in the list of accepted
 func checkParam(pName, pType string) bool {
 	var (
 		nameValidated bool
@@ -50,7 +50,7 @@ func (s Shift) ServeByPath(ctx *fiber.Ctx) error {
 		shiftType    string //Shift type to retrieve
 		shiftRoot    string //Shift root from env
 		downloadPath string //Path to download file from
-		fileName     string //Name of downloaded file
+		fileName     string //Ente of downloaded file
 	)
 
 	shiftRoot, err = utils.ReadEnv("SHIFT_ROOT")

@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"hash"
 	"io"
-	"os"
 	"path/filepath"
 	"strings"
 )
@@ -61,27 +60,44 @@ func getDisplayNameFromPath(p string) string {
 // getSha1 take a valid file path and calculate SHA-1 checksum
 func getSha1(p string) (string, error) {
 	var (
-		err           error
-		file          *os.File  //In memory file
+		// file          *os.File  //In memory file
 		hashInterface hash.Hash //Hash interface to write to
 		hashInByte    []byte    //Calculated hash as []byte
 		checksum      string    //SHA-1 checksum
+		err           error
 	)
 
-	file, err = os.Open(p)
+	// -------------------------
+	// Old method using whole file content , deprecated vs filename only calculation
+	// -------------------------
+
+	//file, err = os.Open(p)
+	//if err != nil {
+	//	return "", err
+	//}
+	//
+	//defer file.Close()
+	//
+	//hashInterface = sha1.New()
+	//
+	//if _, err = io.Copy(hashInterface, p); err != nil {
+	//	return "", err
+	//}
+
+	// Calculate SAH-1
+	//hashInByte = hashInterface.Sum(nil)
+
+	// -------------------------
+	// New method using only filename for calculation
+	// -------------------------
+
+	hashInterface = sha1.New()
+
+	_, err = io.WriteString(hashInterface, p)
 	if err != nil {
 		return "", err
 	}
 
-	defer file.Close()
-
-	hashInterface = sha1.New()
-
-	if _, err = io.Copy(hashInterface, file); err != nil {
-		return "", err
-	}
-
-	// Calculate SAH-1
 	hashInByte = hashInterface.Sum(nil)
 
 	// Convert [] byte in string
@@ -97,4 +113,10 @@ func getFirstNChar(s string, n int) string {
 		return string(r[:n])
 	}
 	return s
+}
+
+// TODO: Implement
+// parseVehicle take an encoded vehicle string in the form [ente]-[stazionamento].[lotto] and return 3 separated value.
+func parseVehicle(v string) (string, string, string) {
+	return "", "", ""
 }
