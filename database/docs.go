@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/lib/pq"
 	"internal-backend/utils"
-	"log"
 	"strings"
 	"time"
 )
@@ -141,14 +140,12 @@ func (d Document) GetRecent(num int, mode string, dest *[]Document) error {
 			// Check if {c} is  "." and already exist in {categories} if not add to it
 			// Before check split category at / and consider only root
 			if c != "." && !utils.Contains(categories, strings.Split(c, "/")[0]) {
-				log.Println(c)
 				categories = append(categories, strings.Split(c, "/")[0])
 			}
 		}
 		// For each category retrieve {num} elements from db and add to dest slice to return
 		for _, category := range categories {
 			// Query run vs %s/%% to avoid aggregate similar category (eg DOCSrl and DOCSrlombardia)
-			log.Println(fmt.Sprintf("%s/%%", category))
 			rows, err = DbConnection.Query(sqlFilteredCategories, num, fmt.Sprintf("%s/%%", category))
 			if err != nil {
 				return errors.New(fmt.Sprintf("Error retrieving documents: %v\n", err))

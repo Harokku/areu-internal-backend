@@ -82,7 +82,7 @@ func (c Fleet) GetActiveNow(dest *[]Fleet) error {
 										order by active_from desc
 										limit 1`
 
-	sqlStatement = `select id,convenzione,ente,active_from from check_convenzioni where active_from=$1 order by convenzione desc, ente asc`
+	sqlStatement = `select id,convenzione,ente,stazionamento, active_from from check_convenzioni where active_from=$1 order by convenzione desc, ente asc`
 
 	// Look for actual time range
 	nowTime, err := utils.ConvertTimestampToTime(time.Now())
@@ -221,7 +221,7 @@ func (b BacoSnapshoot) GetSnapshoot(dest *[]BacoSnapshoot) error {
 }
 
 // TruncateBaCoTable Truncate (clean) actual table
-func (c BacoSnapshoot) TruncateBaCoTable() error {
+func (b BacoSnapshoot) TruncateBaCoTable() error {
 	var (
 		err          error
 		sqlStatement string
@@ -238,7 +238,7 @@ func (c BacoSnapshoot) TruncateBaCoTable() error {
 }
 
 // BulkCreateBaCo Bulk create passed in content array
-func (c BacoSnapshoot) BulkCreateBaCo(contentToAdd []BacoSnapshoot) error {
+func (b BacoSnapshoot) BulkCreateBaCo(contentToAdd []BacoSnapshoot) error {
 	var (
 		err          error
 		sqlStatement *sql.Stmt //Prepared sql statement

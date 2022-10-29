@@ -1,0 +1,65 @@
+//go:build windows
+// +build windows
+
+//package main
+//
+//import (
+//	"fmt"
+//	"github.com/joho/godotenv"
+//	"log"
+//	"os"
+//	"os/exec"
+//)
+//
+//func mapDrive(letter string, address string, user string, pw string) ([]byte, error) {
+//	// return combined output for std and err
+//	userParam := fmt.Sprintf("/user:%s", user)
+//	log.Printf("Coomad args: %v", exec.Command("net", "use", letter, address, userParam, pw).Args)
+//	return exec.Command("net", "use", letter, address, userParam, pw).CombinedOutput()
+//}
+//
+//func unmapDrive(letter string) ([]byte, error) {
+//	return exec.Command("net", "use", letter, "/delete").CombinedOutput()
+//}
+//
+//func init() {
+//	var (
+//		letter  string // Drive letter to map network drive to (Z:)
+//		address string // Server address (\\SERVER\SHARE)
+//		user    string // User name
+//		pw      string // User password
+//		err     error
+//		out     []byte
+//	)
+//	// -------------------------
+//	// .env loading
+//	// -------------------------
+//
+//	// Load YAML with godotenv pkg
+//	err = godotenv.Load("env-net.yaml")
+//
+//	if err != nil {
+//		log.Fatalf("Error loading network .env file")
+//	}
+//
+//	letter = os.Getenv("LETTER")
+//	address = os.Getenv("ADDRESS")
+//	user = os.Getenv("USER")
+//	pw = os.Getenv("PW")
+//
+//	// Unmap old drive to prevent user error on remounting
+//	out, err = unmapDrive(letter)
+//	if err != nil {
+//		log.Printf("[WARN] Error unmapping network drive: %v", string(out))
+//	} else {
+//		log.Printf("Network drive succesfully unmapped: %s", string(out))
+//	}
+//
+//	// Actually map network drive
+//	out, err = mapDrive(letter, address, user, pw)
+//	if err != nil {
+//		log.Printf("Error mapping network drive: %v", string(out))
+//		log.Fatal(err)
+//	}
+//	log.Printf("Network drive succesfully mapped: %s", string(out))
+//}

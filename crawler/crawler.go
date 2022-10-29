@@ -75,9 +75,10 @@ func EnumerateDocuments() error {
 // Check if filename is on the excluded list
 func checkExcludedFile(filename string) bool {
 	excludedFiles := map[string]bool{
-		"Thumbs.db":     true,
-		".DS_Store":     true,
-		"sync_ffs.lock": true,
+		"Thumbs.db":         true,
+		".DS_Store":         true,
+		"sync_ffs.lock":     true,
+		"Doc per RAR SOREU": true,
 	}
 
 	if excludedFiles[filename] {
@@ -95,6 +96,21 @@ func addFile(r string) filepath.WalkFunc {
 			sha1Checksum string            //SHA-1 filename hash
 			newDoc       database.Document //New document entry to append
 		)
+
+		// nil point deference guard on filepath not accessible
+		if fi == nil || path == "" {
+			return nil
+		}
+
+		// Acces error handling
+		if fi.IsDir() && fi.Name() == "Doc per RAR SOREU" {
+			fmt.Printf("skipping a dir without errors: %+v \n", fi.Name())
+			return nil
+		}
+		if err != nil {
+			fmt.Printf("prevent panic by handling failure accessing a path %q: %v\n", path, err)
+			return nil
+		}
 
 		// Check if file is in avoidance list and return
 		if checkExcludedFile(filepath.Base(path)) {

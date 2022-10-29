@@ -121,7 +121,7 @@ func main() {
 	log.Println("Starting filewatcher...")
 	err = crawler.WatchRootFromEnv()
 	if err != nil {
-		log.Fatalf("Error starting filewatcher: %s", err)
+		log.Printf("[ERR] - Error starting filewatcher: %s", err)
 	}
 	log.Println("Filewatcher initialized")
 

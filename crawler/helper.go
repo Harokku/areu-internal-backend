@@ -35,7 +35,7 @@ func getCategory(r string, p string) (string, error) {
 	return category, nil
 }
 
-// getDisplayName take a path and calculate human readable file name, stripping useless char
+// getDisplayName take a path and calculate human-readable file name, stripping useless char
 func getDisplayNameFromPath(p string) string {
 	var (
 		fileName                 string //Filename from path
@@ -117,6 +117,23 @@ func getFirstNChar(s string, n int) string {
 
 // TODO: Implement
 // parseVehicle take an encoded vehicle string in the form [ente]-[stazionamento].[lotto] and return 3 separated value.
+//
+// Actually [lotto] always return ""
 func parseVehicle(v string) (string, string, string) {
-	return "", "", ""
+	var (
+		working       []string
+		ente          []string
+		stazionamento []string
+	)
+
+	// Check if multiple ente ad extract them
+	working = strings.Split(v, "/")
+	// For each ente-stazionamento pair extract single value and append to relative slice
+	for _, s := range working {
+		splitted := strings.Split(s, "-")
+		// FIXME: Check if malformed entry without "-" separator, resulting in array of length 1
+		ente = append(ente, splitted[0])
+		stazionamento = append(stazionamento, splitted[1])
+	}
+	return strings.Join(ente, " - "), strings.Join(stazionamento, " - "), ""
 }

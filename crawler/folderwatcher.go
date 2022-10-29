@@ -43,24 +43,38 @@ func WatchRootFromEnv() error {
 			select {
 			case event := <-w.Event:
 				log.Printf(" - | FileWatcher Event |\t%v", event)
+				// Re-enumerate watched documents
 				EnumerateDocuments()
+				// Calculate hash based on filepath to enable file retrieval
+				hash, err := getSha1(event.Path)
+				if err != nil {
+					log.Printf("[ERR]\tError calculating hash after filwatche event")
+				}
 				websocket.Broadcast <- map[string]interface{}{
 					"id":        "Filewatcher event",
 					"operation": fmt.Sprint(event.Op),
 					"filename":  fmt.Sprint(event.FileInfo.Name()),
+					"hash":      hash,
 				}
 			case err := <-w.Error:
-				log.Fatalln(err)
+				log.Println(err)
 			case <-w.Closed:
 				return
 			}
 		}
 	}()
 
-	// Cycle trough every folder and add it and subfolder to watcher
+	// TODO: Implement not hardcoded version
+	// Set folder to avoid
+	err = w.Ignore(`y:\Docs\Docs_SRLombardia\Doc per RAR SOREU`)
+	if err != nil {
+		log.Printf("[ERR] - Error adding path to file watcher ignored list:\t%v", err)
+	}
+
+	// Cycle through every folder and add it and subfolder to watcher
 	for _, rootFolder := range docRootArray {
 		if err = w.AddRecursive(rootFolder); err != nil {
-			return err
+			log.Printf("[WARN] - Error adding folder to watch list: %v", err)
 		}
 	}
 
