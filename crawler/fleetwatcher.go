@@ -84,7 +84,7 @@ func fleetDbUpdate(file string) error {
 		for keyConv, valueConv := range sheetValueMap {
 			for _, convItem := range valueConv {
 				row := database.Fleet{}
-				row.Ente, row.Stazionamento, _ = parseVehicle(convItem)
+				row.Ente, row.Stazionamento, _, row.Minimum = parseVehicle(convItem)
 				row.Convenzione = keyConv
 				row.ActiveFrom, err = utils.ConvertLabelToTime(s)
 				if err != nil {

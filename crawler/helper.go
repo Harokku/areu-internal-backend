@@ -116,18 +116,28 @@ func getFirstNChar(s string, n int) string {
 }
 
 // TODO: Implement
-// parseVehicle take an encoded vehicle string in the form [ente]-[stazionamento].[lotto] and return 3 separated value.
+// parseVehicle take an encoded vehicle string in the form [ente]-[stazionamento].[lotto]*[convenzione] and return 3 separated value.
 //
 // Actually [lotto] always return ""
-func parseVehicle(v string) (string, string, string) {
+func parseVehicle(v string) (string, string, string, string) {
 	var (
-		working       []string
-		ente          []string
-		stazionamento []string
+		cutted        string   // Stripped of * part (convensione)
+		working       []string // Partial aggregated ente-stazionamento array
+		ente          []string // Extracted enti
+		stazionamento []string // Extracted stazionamenti
+		convenzione   string   // Extracted convenzione
+		found         bool     // If convenzione part is present in argument string
 	)
 
+	// Check in * is present and extract minimum personnel number on board, if not return N/A
+	// In either case strip * part and assign the rest wi working string for further processing
+	cutted, convenzione, found = strings.Cut(v, "*")
+	if !found {
+		convenzione = "N/A"
+	}
+
 	// Check if multiple ente ad extract them
-	working = strings.Split(v, "/")
+	working = strings.Split(cutted, "/")
 	// For each ente-stazionamento pair extract single value and append to relative slice
 	for _, s := range working {
 		splitted := strings.Split(s, "-")
@@ -135,5 +145,5 @@ func parseVehicle(v string) (string, string, string) {
 		ente = append(ente, splitted[0])
 		stazionamento = append(stazionamento, splitted[1])
 	}
-	return strings.Join(ente, " - "), strings.Join(stazionamento, " - "), ""
+	return strings.Join(ente, " - "), strings.Join(stazionamento, " - "), "", convenzione
 }

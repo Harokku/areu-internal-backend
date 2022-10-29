@@ -14,6 +14,7 @@ type Fleet struct {
 	Ente          string    `json:"ente"`          // Vehicle callsign
 	Stazionamento string    `json:"stazionamento"` // Vechicle position
 	Convenzione   string    `json:"convenzione"`   // Vehicle convention type
+	Minimum       string    `json:"minimum"`       // Minimum number of personnel on board
 	ActiveFrom    time.Time `json:"active_from"`   // Time interval to check for availability
 }
 
@@ -39,7 +40,7 @@ func (c Fleet) GetAll(dest *[]Fleet) error {
 		sqlStatement string
 	)
 
-	sqlStatement = `select id,convenzione,ente,active_from from check_convenzioni order by convenzione desc, ente asc`
+	sqlStatement = `select id,convenzione,ente,minimum,active_from from check_convenzioni order by convenzione desc, ente asc`
 
 	rows, err = DbConnection.Query(sqlStatement)
 	if err != nil {
@@ -50,7 +51,7 @@ func (c Fleet) GetAll(dest *[]Fleet) error {
 
 	for rows.Next() {
 		var c Fleet
-		err = rows.Scan(&c.Id, &c.Convenzione, &c.Ente, &c.ActiveFrom)
+		err = rows.Scan(&c.Id, &c.Convenzione, &c.Ente, &c.Minimum, &c.ActiveFrom)
 		if err != nil {
 			return errors.New(fmt.Sprintf("Error scanning row: %v\n", err))
 		}
@@ -82,7 +83,7 @@ func (c Fleet) GetActiveNow(dest *[]Fleet) error {
 										order by active_from desc
 										limit 1`
 
-	sqlStatement = `select id,convenzione,ente,stazionamento, active_from from check_convenzioni where active_from=$1 order by convenzione desc, ente asc`
+	sqlStatement = `select id,convenzione,ente,stazionamento,minimum,active_from from check_convenzioni where active_from=$1 order by convenzione desc, ente asc`
 
 	// Look for actual time range
 	nowTime, err := utils.ConvertTimestampToTime(time.Now())
@@ -115,7 +116,7 @@ func (c Fleet) GetActiveNow(dest *[]Fleet) error {
 
 	for rows.Next() {
 		var c Fleet
-		err = rows.Scan(&c.Id, &c.Convenzione, &c.Ente, &c.Stazionamento, &c.ActiveFrom)
+		err = rows.Scan(&c.Id, &c.Convenzione, &c.Ente, &c.Stazionamento, &c.Minimum, &c.ActiveFrom)
 		if err != nil {
 			return errors.New(fmt.Sprintf("Error scanning row: %v\n", err))
 		}
@@ -157,11 +158,11 @@ func (c Fleet) BulkCreate(contentToAdd []Fleet) error {
 	}
 
 	//Prepare insert statement
-	sqlStatement, err = txn.Prepare(pq.CopyIn("check_convenzioni", "convenzione", "ente", "active_from", "stazionamento"))
+	sqlStatement, err = txn.Prepare(pq.CopyIn("check_convenzioni", "convenzione", "ente", "active_from", "stazionamento", "minimum"))
 
 	//Exec insert for every passed content
 	for _, content := range contentToAdd {
-		_, err = sqlStatement.Exec(content.Convenzione, content.Ente, content.ActiveFrom, content.Stazionamento)
+		_, err = sqlStatement.Exec(content.Convenzione, content.Ente, content.ActiveFrom, content.Stazionamento, content.Minimum)
 		if err != nil {
 			return err
 		}
