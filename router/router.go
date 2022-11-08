@@ -66,6 +66,14 @@ func SetupRoutes(app *fiber.App) {
 	shift.Get("/serveByPath/:name/:type", handler.Shift{}.ServeByPath)
 
 	// -------------------------
+	// Issue
+	// -------------------------
+	issue := v1.Group("/issue")
+	issue.Get("/", handler.Issue{}.GetAll)
+	issue.Post("/", handler.Issue{}.PostIssue)
+	issue.Post("/detail", handler.Issue{}.PostDetail)
+
+	// -------------------------
 	// Websocket endpoints
 	// -------------------------
 	ws := v1.Group("/ws")

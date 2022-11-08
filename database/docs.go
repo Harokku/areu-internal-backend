@@ -120,8 +120,6 @@ func (d Document) GetRecent(num int, mode string, dest *[]Document) error {
 
 	switch mode {
 	case "split":
-		//TODO: implement
-
 		//Get distinct categories from db
 		rows, err = DbConnection.Query(sqlDistinctCategories)
 		if err != nil {

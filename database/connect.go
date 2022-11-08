@@ -122,13 +122,14 @@ func Connect() {
 	sqlstatement = `
 		create table if not exists check_convenzioni
 		(
-			id            uuid default gen_random_uuid() not null
+			id            uuid    default gen_random_uuid()        not null
 				constraint check_convenzioni_pk
 					primary key,
-			convenzione   varchar                        not null,
-			ente          varchar                        not null,
-			active_from   timestamp                      not null,
-			stazionamento varchar                        not null
+			convenzione   varchar                                  not null,
+			ente          varchar                                  not null,
+			active_from   timestamp                                not null,
+			stazionamento varchar                                  not null,
+			minimum       varchar default 'N/A'::character varying not null
 		);
 		
 		comment on table check_convenzioni is 'Tabella appoggio per sistema controllo convenzioni';
@@ -140,6 +141,8 @@ func Connect() {
 		comment on column check_convenzioni.active_from is 'Fascia oraria di controllo';
 		
 		comment on column check_convenzioni.stazionamento is 'Luogo di stazionamento';
+		
+		comment on column check_convenzioni.minimum is 'Minimum number of personnel on board';
 		
 		create unique index if not exists check_convenzioni_id_uindex
 			on check_convenzioni (id);
@@ -177,6 +180,49 @@ func Connect() {
 		
 		create unique index if not exists db_baco_id_uindex
 			on "db_Baco" (id);
+`
+
+	_, err = DbConnection.Exec(sqlstatement)
+	if err != nil {
+		log.Fatalf(fmt.Sprintf("Error creating Baco DB Table: %v", err))
+	}
+
+	// Issue management tables
+	sqlstatement = `
+		create table if not exists issue
+		(
+			id        uuid      default gen_random_uuid() not null
+				primary key,
+			timestamp timestamp default now()             not null,
+			operator  varchar                             not null,
+			priority  integer   default 2                 not null,
+			note      varchar                             not null
+		);
+		
+		comment on table issue is 'Issue Tracker';
+		
+		comment on column issue.operator is 'operator name';
+		
+		comment on column issue.note is 'Issue note';
+`
+	_, err = DbConnection.Exec(sqlstatement)
+	if err != nil {
+		log.Fatalf(fmt.Sprintf("Error creating Baco DB Table: %v", err))
+	}
+
+	// Issue detail
+	sqlstatement = `
+		create table if not exists issue_detail
+		(
+			id        uuid      default gen_random_uuid() not null
+				primary key,
+			issue_id  uuid
+				constraint issue_detail_issue_id_fk
+					references issue,
+			timestamp timestamp default now(),
+			operator  varchar                             not null,
+			note      varchar                             not null
+		);
 `
 
 	_, err = DbConnection.Exec(sqlstatement)
