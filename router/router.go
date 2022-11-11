@@ -85,4 +85,5 @@ func SetupRoutes(app *fiber.App) {
 		return ctx.SendStatus(fiber.StatusUpgradeRequired)
 	})
 	ws.Get("/", websocket2.DocsUpdate())
+	ws.Get("/issue", websocket2.IssueUpdate())
 }

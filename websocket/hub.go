@@ -9,12 +9,18 @@ type client struct {
 	remoteIp string
 }
 
+// Constant definition for WS message types
+const (
+	Filewatcher = "Filewatcher event"
+	Issue       = "Issue Event"
+)
+
 var clients = make(map[*websocket.Conn]client) // Note: although large maps with pointer-like types (e.g. strings) as keys are slow, using pointers themselves as keys is acceptable and fast
 var register = make(chan *websocket.Conn)
 var Broadcast = make(chan map[string]interface{})
 var unregister = make(chan *websocket.Conn)
 
-//RunHub actually start the connection hub to manage reg/unreg and broadcast of message. Use channels to control connected clients and messages broadcast
+// RunHub actually start the connection hub to manage reg/unreg and broadcast of message. Use channels to control connected clients and messages broadcast
 func RunHub() {
 	for {
 		select {

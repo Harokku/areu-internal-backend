@@ -157,7 +157,8 @@ func fiberApp() *fiber.App {
 	// -------------------------
 
 	app.Static("/", "./static")
-	app.Static("/intranet", "./static/build")
+	app.Static("/intranet", "./static/intranet")
+	app.Static("/issuedashboard", "./static/issuedashboad")
 
 	// -------------------------
 	// Debug routes
@@ -176,7 +177,10 @@ func fiberApp() *fiber.App {
 	// -------------------------
 
 	app.Get("/intranet", func(ctx *fiber.Ctx) error {
-		return ctx.SendFile("./static/build/index.html")
+		return ctx.SendFile("./static/intranet/index.html")
+	})
+	app.Get("/issuedashboard", func(ctx *fiber.Ctx) error {
+		return ctx.SendFile("./static/issuedashboard/index.html")
 	})
 
 	// -------------------------

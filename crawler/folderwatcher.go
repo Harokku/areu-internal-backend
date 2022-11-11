@@ -51,7 +51,7 @@ func WatchRootFromEnv() error {
 					log.Printf("[ERR]\tError calculating hash after filwatche event")
 				}
 				websocket.Broadcast <- map[string]interface{}{
-					"id":        "Filewatcher event",
+					"id":        websocket.Filewatcher,
 					"operation": fmt.Sprint(event.Op),
 					"filename":  fmt.Sprint(event.FileInfo.Name()),
 					"hash":      hash,

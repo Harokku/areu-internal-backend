@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"internal-backend/websocket"
 	"time"
 )
 
@@ -87,6 +88,12 @@ func (i *Issue) PostIssue() error {
 		return errors.New(fmt.Sprintf("[ERR]\tError inserting issue in db:\t%v", err))
 	}
 
+	websocket.Broadcast <- map[string]interface{}{
+		"id":        websocket.Issue,
+		"operation": "Issue created",
+		"data":      i,
+	}
+
 	return nil
 }
 
@@ -106,7 +113,7 @@ func (i IssueDetail) GetDetailsByIssue(issueId string, dest *[]IssueDetail) erro
 					select id,timestamp,operator,note
 					from issue_detail
 					where issue_id = $1
-					order by timestamp desc;
+					order by timestamp asc;
 `
 	rows, err = DbConnection.Query(sqlStatement, issueId)
 	if err != nil {
@@ -144,6 +151,12 @@ func (i *IssueDetail) PostIssueDetail(issueId string) error {
 	err = DbConnection.QueryRow(sqlStatement, issueId, i.Operator, i.Note).Scan(&i.Id, &i.Timestamp)
 	if err != nil {
 		return errors.New(fmt.Sprintf("[ERR]\tError inserting issue detail in db:\t%v", err))
+	}
+
+	websocket.Broadcast <- map[string]interface{}{
+		"id":        websocket.Issue,
+		"operation": "Detail created",
+		"data":      i,
 	}
 
 	return nil
