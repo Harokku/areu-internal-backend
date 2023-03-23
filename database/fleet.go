@@ -16,6 +16,7 @@ type Fleet struct {
 	Convenzione   string    `json:"convenzione"`   // Vehicle convention type
 	Minimum       string    `json:"minimum"`       // Minimum number of personnel on board
 	ActiveFrom    time.Time `json:"active_from"`   // Time interval to check for availability
+	ActiveDays    string    `json:"active_days"`   // Week days to check for availability
 }
 
 type BacoSnapshoot struct {
@@ -26,6 +27,23 @@ type BacoSnapshoot struct {
 	Convenzione   string `json:"convenzione"`   // Vehicle convention type
 	Radio         string `json:"radio"`         // Vechicle radio id
 
+}
+
+// WeekDays enum definition
+type weekday int
+
+const (
+	D weekday = iota
+	L
+	Ma
+	Me
+	G
+	V
+	S
+)
+
+func (wd weekday) String() string {
+	return [...]string{"D", "L", "Ma", "Me", "G", "V", "S"}[wd]
 }
 
 // -------------------------
@@ -40,7 +58,7 @@ func (c Fleet) GetAll(dest *[]Fleet) error {
 		sqlStatement string
 	)
 
-	sqlStatement = `select id,convenzione,ente,minimum,active_from from check_convenzioni order by convenzione desc, ente asc`
+	sqlStatement = `select id,convenzione,ente,minimum,active_from, active_days from check_convenzioni order by convenzione desc, ente asc`
 
 	rows, err = DbConnection.Query(sqlStatement)
 	if err != nil {
@@ -51,7 +69,7 @@ func (c Fleet) GetAll(dest *[]Fleet) error {
 
 	for rows.Next() {
 		var c Fleet
-		err = rows.Scan(&c.Id, &c.Convenzione, &c.Ente, &c.Minimum, &c.ActiveFrom)
+		err = rows.Scan(&c.Id, &c.Convenzione, &c.Ente, &c.Minimum, &c.ActiveFrom, &c.ActiveDays)
 		if err != nil {
 			return errors.New(fmt.Sprintf("Error scanning row: %v\n", err))
 		}
@@ -61,15 +79,21 @@ func (c Fleet) GetAll(dest *[]Fleet) error {
 	return nil
 }
 
+// GetActiveNow retrieve actual fleet composition based on time of day da week day
 func (c Fleet) GetActiveNow(dest *[]Fleet) error {
 	var (
 		err                           error
 		rows                          *sql.Rows
 		actualRange                   time.Time //Actual time range to retrieve from db built based on now
+		today                         string    // Actual week day from time.now() casted to db like format
 		sqlStatement                  string
 		sqlActualRangeStatement       string // Query to get actual time range based on now
 		sqlActualRangeStatementIfNull string // Query to get actual range if precedent is null
 	)
+
+	// Get actual week day and cast to DB type
+	// e.g. Monday = L, since we'll search with like add %: %L%
+	today = fmt.Sprintf("%%%v%%", weekday(time.Now().Weekday()))
 
 	sqlActualRangeStatement = `	select active_from
 								from check_convenzioni
@@ -83,7 +107,7 @@ func (c Fleet) GetActiveNow(dest *[]Fleet) error {
 										order by active_from desc
 										limit 1`
 
-	sqlStatement = `select id,convenzione,ente,stazionamento,minimum,active_from from check_convenzioni where active_from=$1 order by convenzione desc, ente asc`
+	sqlStatement = `select id,convenzione,ente,stazionamento,minimum,active_from from check_convenzioni where active_from=$1 and active_days like $2 order by convenzione desc, ente asc`
 
 	// Look for actual time range
 	nowTime, err := utils.ConvertTimestampToTime(time.Now())
@@ -107,7 +131,7 @@ func (c Fleet) GetActiveNow(dest *[]Fleet) error {
 	}
 
 	// Retrieve actual active vehicles
-	rows, err = DbConnection.Query(sqlStatement, actualRange)
+	rows, err = DbConnection.Query(sqlStatement, actualRange, today)
 	if err != nil {
 		return errors.New(fmt.Sprintf("Error retrieving fleet info: %v\n", err))
 	}
@@ -158,11 +182,11 @@ func (c Fleet) BulkCreate(contentToAdd []Fleet) error {
 	}
 
 	//Prepare insert statement
-	sqlStatement, err = txn.Prepare(pq.CopyIn("check_convenzioni", "convenzione", "ente", "active_from", "stazionamento", "minimum"))
+	sqlStatement, err = txn.Prepare(pq.CopyIn("check_convenzioni", "convenzione", "ente", "active_from", "stazionamento", "minimum", "active_days"))
 
 	//Exec insert for every passed content
 	for _, content := range contentToAdd {
-		_, err = sqlStatement.Exec(content.Convenzione, content.Ente, content.ActiveFrom, content.Stazionamento, content.Minimum)
+		_, err = sqlStatement.Exec(content.Convenzione, content.Ente, content.ActiveFrom, content.Stazionamento, content.Minimum, content.ActiveDays)
 		if err != nil {
 			return err
 		}

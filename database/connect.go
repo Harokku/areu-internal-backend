@@ -129,7 +129,8 @@ func Connect() {
 			ente          varchar                                  not null,
 			active_from   timestamp                                not null,
 			stazionamento varchar                                  not null,
-			minimum       varchar default 'N/A'::character varying not null
+			minimum       varchar default 'N/A'::character varying not null,
+			active_days   varchar default 'L-Ma-Me-G-V-S-D'::character varying not null
 		);
 		
 		comment on table check_convenzioni is 'Tabella appoggio per sistema controllo convenzioni';
@@ -143,6 +144,8 @@ func Connect() {
 		comment on column check_convenzioni.stazionamento is 'Luogo di stazionamento';
 		
 		comment on column check_convenzioni.minimum is 'Minimum number of personnel on board';
+
+		comment on column public.check_convenzioni.active_days is 'Giorni di disponibilita';
 		
 		create unique index if not exists check_convenzioni_id_uindex
 			on check_convenzioni (id);
