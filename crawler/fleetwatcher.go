@@ -32,11 +32,17 @@ func parseSheet(f *excelize.File, sheetName string) (map[string][]string, error)
 	}
 
 	// Populate header map with relative column index (build using first 3 char of each column)
+	// Duplicate empty header (merged cell in original file)
 	for i, j := range headers {
-		columnKeyMap[i] = getFirstNChar(strings.TrimSpace(j), 3)
+		if strings.TrimSpace(j) != "" {
+			columnKeyMap[i] = getFirstNChar(strings.TrimSpace(j), 3) // If populated add to array
+		} else {
+			columnKeyMap[i] = getFirstNChar(strings.TrimSpace(headers[i-1]), 3) // Else set equal to previous cell
+		}
 	}
 
 	// For each sequent row aggregate by header and populate map
+	// For each value EVEN index are vehicle callsign and ODD index are daily availability
 	for rows.Next() {
 		row, err := rows.Columns()
 		if err != nil {
@@ -82,15 +88,18 @@ func fleetDbUpdate(file string) error {
 		}
 
 		for keyConv, valueConv := range sheetValueMap {
-			for _, convItem := range valueConv {
-				row := database.Fleet{}
-				row.Ente, row.Stazionamento, _, row.Minimum = parseVehicle(convItem)
-				row.Convenzione = keyConv
-				row.ActiveFrom, err = utils.ConvertLabelToTime(s)
-				if err != nil {
-					return err
+			for i, convItem := range valueConv {
+				if i%2 == 0 {
+					row := database.Fleet{}
+					row.Ente, row.Stazionamento, _, row.Minimum = parseVehicle(convItem)
+					row.Convenzione = keyConv
+					row.ActiveFrom, err = utils.ConvertLabelToTime(s)
+					row.ActiveDays = valueConv[i+1]
+					if err != nil {
+						return err
+					}
+					contentObject = append(contentObject, row)
 				}
-				contentObject = append(contentObject, row)
 			}
 		}
 	}
