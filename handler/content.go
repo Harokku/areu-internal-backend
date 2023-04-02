@@ -2,8 +2,8 @@ package handler
 
 import (
 	"fmt"
-	"github.com/360EntSecGroup-Skylar/excelize/v2"
 	"github.com/gofiber/fiber/v2"
+	"github.com/xuri/excelize/v2"
 	"internal-backend/database"
 	"internal-backend/utils"
 	"log"
@@ -13,7 +13,7 @@ import (
 type Content struct {
 }
 
-//GetAll retrieve content index (all links and display name)
+// GetAll retrieve content index (all links and display name)
 func (c Content) GetAll(ctx *fiber.Ctx) error {
 	var (
 		d   []database.Content
@@ -35,7 +35,7 @@ func (c Content) GetAll(ctx *fiber.Ctx) error {
 	})
 }
 
-//GetContent retrieve content from XLSX sheet from link
+// GetContent retrieve content from XLSX sheet from link
 func (c Content) GetContent(ctx *fiber.Ctx) error {
 	var (
 		f       *excelize.File

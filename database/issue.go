@@ -13,7 +13,9 @@ type Issue struct {
 	Timestamp time.Time     `json:"timestamp"`
 	Operator  string        `json:"operator,omitempty"`
 	Priority  int           `json:"priority,omitempty"`
+	Title     string        `json:"title,omitempty"`
 	Note      string        `json:"note,omitempty"`
+	Open      bool          `json:"open,omitempty"`
 	Detail    []IssueDetail `json:"detail,omitempty"`
 }
 
@@ -29,7 +31,7 @@ type IssueDetail struct {
 // Issue methods
 // -------------------------
 
-// GetAll get all issue
+// GetAll get all open issue
 // {mode}: Optional, if set to full return also all issue details
 func (i Issue) GetAll(mode string, dest *[]Issue) error {
 	var (
@@ -39,8 +41,9 @@ func (i Issue) GetAll(mode string, dest *[]Issue) error {
 	)
 
 	// Query to retrieve all issues
-	sqlStatement = `select id,timestamp,operator,priority,note
+	sqlStatement = `select id,timestamp,operator,priority,title,note
 					from issue
+					where open = true
 					order by priority desc, timestamp desc;`
 
 	rows, err = DbConnection.Query(sqlStatement)
@@ -52,7 +55,7 @@ func (i Issue) GetAll(mode string, dest *[]Issue) error {
 
 	for rows.Next() {
 		var i Issue
-		err = rows.Scan(&i.Id, &i.Timestamp, &i.Operator, &i.Priority, &i.Note)
+		err = rows.Scan(&i.Id, &i.Timestamp, &i.Operator, &i.Priority, &i.Title, &i.Note)
 		if err != nil {
 			return errors.New(fmt.Sprintf("[ERR]\tError scanning row:\t%v", err))
 		}
@@ -79,11 +82,11 @@ func (i *Issue) PostIssue() error {
 	)
 
 	sqlStatement = `
-		INSERT INTO issue (operator, priority, note)
-		VALUES ($1,$2,$3)
+		INSERT INTO issue (operator, priority,title, note)
+		VALUES ($1,$2,$3,$4)
 		RETURNING id, timestamp
 `
-	err = DbConnection.QueryRow(sqlStatement, i.Operator, i.Priority, i.Note).Scan(&i.Id, &i.Timestamp)
+	err = DbConnection.QueryRow(sqlStatement, i.Operator, i.Priority, i.Title, i.Note).Scan(&i.Id, &i.Timestamp)
 	if err != nil {
 		return errors.New(fmt.Sprintf("[ERR]\tError inserting issue in db:\t%v", err))
 	}
@@ -91,6 +94,32 @@ func (i *Issue) PostIssue() error {
 	websocket.Broadcast <- map[string]interface{}{
 		"id":        websocket.Issue,
 		"operation": "Issue created",
+		"data":      i,
+	}
+
+	return nil
+}
+
+// CloseIssue close an issue setting open state to false
+func (i *Issue) CloseIssue() error {
+	var (
+		err          error
+		sqlStatement string
+	)
+
+	sqlStatement = `
+		UPDATE issue
+		SET open = false
+		WHERE id = $1
+`
+	_, err = DbConnection.Exec(sqlStatement, i.Id)
+	if err != nil {
+		return errors.New(fmt.Sprintf("[ERR]\tError closing issue in db:\t%v", err))
+	}
+
+	websocket.Broadcast <- map[string]interface{}{
+		"id":        websocket.Issue,
+		"operation": "Issue closed",
 		"data":      i,
 	}
 

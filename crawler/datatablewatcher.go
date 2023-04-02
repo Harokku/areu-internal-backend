@@ -3,8 +3,8 @@ package crawler
 import (
 	"errors"
 	"fmt"
-	"github.com/360EntSecGroup-Skylar/excelize/v2"
 	"github.com/radovskyb/watcher"
+	"github.com/xuri/excelize/v2"
 	"internal-backend/database"
 	"internal-backend/utils"
 	"log"

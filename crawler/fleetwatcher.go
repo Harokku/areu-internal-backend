@@ -3,8 +3,8 @@ package crawler
 import (
 	"errors"
 	"fmt"
-	"github.com/360EntSecGroup-Skylar/excelize/v2"
 	"github.com/radovskyb/watcher"
+	"github.com/xuri/excelize/v2"
 	"internal-backend/database"
 	"internal-backend/utils"
 	"log"
@@ -24,17 +24,18 @@ func parseSheet(f *excelize.File, sheetName string) (map[string][]string, error)
 		fmt.Println(err)
 	}
 
-	// Read 1st row (headers)
+	// Read 2nd row (headers)
+	rows.Next()
 	rows.Next()
 	headers, err := rows.Columns()
 	if err != nil {
 		return nil, err
 	}
 
-	// Populate header map with relative column index (build using first 3 char of each column)
-	// Duplicate empty header (merged cell in original file)
+	// Populate header map with relative column index (build using odd column text)
+	// substitute even text with previous column text
 	for i, j := range headers {
-		if strings.TrimSpace(j) != "" {
+		if i%2 == 0 {
 			columnKeyMap[i] = getFirstNChar(strings.TrimSpace(j), 3) // If populated add to array
 		} else {
 			columnKeyMap[i] = getFirstNChar(strings.TrimSpace(headers[i-1]), 3) // Else set equal to previous cell

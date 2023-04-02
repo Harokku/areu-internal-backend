@@ -30,7 +30,6 @@ func DocsUpdate() fiber.Handler {
 			}
 
 			if mt == websocket.PingMessage {
-				fmt.Println("Ping received")
 				err := c.WriteMessage(websocket.PongMessage, []byte("Pong"))
 				if err != nil {
 					return
@@ -86,6 +85,7 @@ func IssueUpdate() fiber.Handler {
 			}
 
 			if mt == websocket.PingMessage {
+				fmt.Println("Ping received")
 				err := c.WriteMessage(websocket.PongMessage, nil)
 				if err != nil {
 					return

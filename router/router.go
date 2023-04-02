@@ -71,6 +71,7 @@ func SetupRoutes(app *fiber.App) {
 	issue := v1.Group("/issue")
 	issue.Get("/", handler.Issue{}.GetAll)
 	issue.Post("/", handler.Issue{}.PostIssue)
+	issue.Put("/close/:id", handler.Issue{}.CloseIssue)
 	issue.Post("/detail", handler.Issue{}.PostDetail)
 
 	// -------------------------

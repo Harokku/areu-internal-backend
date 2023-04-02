@@ -61,6 +61,31 @@ func (i Issue) PostIssue(ctx *fiber.Ctx) error {
 	})
 }
 
+// CloseIssue close selected issue
+func (i Issue) CloseIssue(ctx *fiber.Ctx) error {
+	var (
+		err   error
+		issue database.Issue
+	)
+
+	if ctx.Params("id") == "" {
+		return ctx.SendStatus(fiber.StatusBadRequest)
+	}
+
+	issue.Id = ctx.Params("id")
+	err = issue.CloseIssue()
+	if err != nil {
+		log.Printf(ErrStringMsg("issue/CloseIssue while adding record to db", err))
+		return ctx.SendStatus(fiber.StatusBadRequest)
+	}
+
+	return ctx.JSON(fiber.Map{
+		"status":  "success",
+		"message": "Issue closed",
+		"data":    issue.Id,
+	})
+}
+
 // PostDetail add new detail do selected issue and return new record
 func (i Issue) PostDetail(ctx *fiber.Ctx) error {
 	var (

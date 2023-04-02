@@ -2,7 +2,7 @@ package utils
 
 import (
 	"fmt"
-	"github.com/360EntSecGroup-Skylar/excelize/v2"
+	"github.com/xuri/excelize/v2"
 	"log"
 	"path/filepath"
 	"time"
@@ -65,7 +65,7 @@ func (e Entry) WriteEntry() error {
 	sheetList = f.GetSheetList()
 
 	// Insert a new row on top of 1st sheet (after header)
-	err = f.InsertRow(sheetList[0], 2)
+	err = f.InsertRows(sheetList[0], 2, 1)
 	if err != nil {
 		return err
 	}
