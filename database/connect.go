@@ -192,27 +192,31 @@ func Connect() {
 
 	// Issue management tables
 	sqlstatement = `
-		create table if not exists public.issue
+		create table if not exists issue
 		(
-			id        uuid      default gen_random_uuid()      not null
+			id        uuid      default gen_random_uuid()         not null
 				primary key,
-			timestamp timestamp default now()                  not null,
-			operator  varchar                                  not null,
-			priority  integer   default 2                      not null,
-			note      varchar                                  not null,
-			title     varchar   default '-'::character varying not null,
-			open      boolean   default true                   not null
+			timestamp timestamp default now()                     not null,
+			operator  varchar                                     not null,
+			priority  integer   default 2                         not null,
+			note      varchar                                     not null,
+			title     varchar   default '-'::character varying    not null,
+			open      boolean   default true                      not null,
+			address   inet      default '127.0.0.1'::inet         not null,
+			category  varchar   default 'self'::character varying not null
 		);
 		
-		comment on table public.issue is 'Issue Tracker';
+		comment on table issue is 'Issue Tracker';
 		
-		comment on column public.issue.operator is 'operator name';
+		comment on column issue.operator is 'operator name';
 		
-		comment on column public.issue.note is 'Issue note';
+		comment on column issue.note is 'Issue note';
 		
-		comment on column public.issue.title is 'Issue Title';
+		comment on column issue.title is 'Issue Title';
 		
-		comment on column public.issue.open is 'If issue is still open False to achieve';
+		comment on column issue.open is 'If issue is still open False to achieve';
+		
+		comment on column issue.category is 'Assigned category';
 `
 	_, err = DbConnection.Exec(sqlstatement)
 	if err != nil {
@@ -230,7 +234,8 @@ func Connect() {
 					references issue,
 			timestamp timestamp default now(),
 			operator  varchar                             not null,
-			note      varchar                             not null
+			note      varchar                             not null,
+			address   inet      default '127.0.0.1'::inet not null
 		);
 `
 

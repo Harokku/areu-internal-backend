@@ -43,12 +43,14 @@ func (i Issue) PostIssue(ctx *fiber.Ctx) error {
 		issue database.Issue
 	)
 
-	err = ctx.BodyParser(&issue)
+	err = ctx.BodyParser(&issue) // <-- Parse JSON body
 	if err != nil {
 		return ctx.SendStatus(fiber.StatusBadRequest)
 	}
 
-	err = issue.PostIssue()
+	issue.Address = ctx.IP() // <-- Get client IP
+
+	err = issue.PostIssue() // <-- Add record to db
 	if err != nil {
 		log.Printf(ErrStringMsg("issue/PostIssue while adding record to db", err))
 		return ctx.SendStatus(fiber.StatusBadRequest)
@@ -68,11 +70,12 @@ func (i Issue) CloseIssue(ctx *fiber.Ctx) error {
 		issue database.Issue
 	)
 
+	// Check if id is present
 	if ctx.Params("id") == "" {
 		return ctx.SendStatus(fiber.StatusBadRequest)
 	}
 
-	issue.Id = ctx.Params("id")
+	issue.Id = ctx.Params("id") // <-- Get issue id from url
 	err = issue.CloseIssue()
 	if err != nil {
 		log.Printf(ErrStringMsg("issue/CloseIssue while adding record to db", err))
@@ -93,10 +96,12 @@ func (i Issue) PostDetail(ctx *fiber.Ctx) error {
 		issueDetail database.IssueDetail
 	)
 
-	err = ctx.BodyParser(&issueDetail)
+	err = ctx.BodyParser(&issueDetail) //
 	if err != nil {
 		return ctx.SendStatus(fiber.StatusBadRequest)
 	}
+
+	issueDetail.Address = ctx.IP() // <-- Get client IP
 
 	err = issueDetail.PostIssueDetail(issueDetail.IssueID)
 	if err != nil {

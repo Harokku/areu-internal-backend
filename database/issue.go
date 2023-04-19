@@ -16,6 +16,8 @@ type Issue struct {
 	Title     string        `json:"title,omitempty"`
 	Note      string        `json:"note,omitempty"`
 	Open      bool          `json:"open,omitempty"`
+	Address   string        `json:"address,omitempty"`
+	Category  string        `json:"category,omitempty"`
 	Detail    []IssueDetail `json:"detail,omitempty"`
 }
 
@@ -25,6 +27,7 @@ type IssueDetail struct {
 	Timestamp time.Time `json:"timestamp"`
 	Operator  string    `json:"operator,omitempty"`
 	Note      string    `json:"note,omitempty"`
+	Address   string    `json:"address,omitempty"`
 }
 
 // -------------------------
@@ -41,10 +44,10 @@ func (i Issue) GetAll(mode string, dest *[]Issue) error {
 	)
 
 	// Query to retrieve all issues
-	sqlStatement = `select id,timestamp,operator,priority,title,note
+	sqlStatement = `select id,timestamp,operator,priority,title,note, address, category
 					from issue
 					where open = true
-					order by priority desc, timestamp desc;`
+					order by category asc, timestamp desc;`
 
 	rows, err = DbConnection.Query(sqlStatement)
 	if err != nil {
@@ -55,7 +58,7 @@ func (i Issue) GetAll(mode string, dest *[]Issue) error {
 
 	for rows.Next() {
 		var i Issue
-		err = rows.Scan(&i.Id, &i.Timestamp, &i.Operator, &i.Priority, &i.Title, &i.Note)
+		err = rows.Scan(&i.Id, &i.Timestamp, &i.Operator, &i.Priority, &i.Title, &i.Note, &i.Address, &i.Category)
 		if err != nil {
 			return errors.New(fmt.Sprintf("[ERR]\tError scanning row:\t%v", err))
 		}
@@ -82,11 +85,11 @@ func (i *Issue) PostIssue() error {
 	)
 
 	sqlStatement = `
-		INSERT INTO issue (operator, priority,title, note)
-		VALUES ($1,$2,$3,$4)
+		INSERT INTO issue (operator, priority,title, note,address, category)
+		VALUES ($1,$2,$3,$4,$5,$6)
 		RETURNING id, timestamp
 `
-	err = DbConnection.QueryRow(sqlStatement, i.Operator, i.Priority, i.Title, i.Note).Scan(&i.Id, &i.Timestamp)
+	err = DbConnection.QueryRow(sqlStatement, i.Operator, i.Priority, i.Title, i.Note, i.Address, i.Category).Scan(&i.Id, &i.Timestamp)
 	if err != nil {
 		return errors.New(fmt.Sprintf("[ERR]\tError inserting issue in db:\t%v", err))
 	}
@@ -139,7 +142,7 @@ func (i IssueDetail) GetDetailsByIssue(issueId string, dest *[]IssueDetail) erro
 	)
 
 	sqlStatement = `
-					select id,timestamp,operator,note
+					select id,timestamp,operator,note, address
 					from issue_detail
 					where issue_id = $1
 					order by timestamp asc;
@@ -153,7 +156,7 @@ func (i IssueDetail) GetDetailsByIssue(issueId string, dest *[]IssueDetail) erro
 
 	for rows.Next() {
 		var i IssueDetail
-		err = rows.Scan(&i.Id, &i.Timestamp, &i.Operator, &i.Note)
+		err = rows.Scan(&i.Id, &i.Timestamp, &i.Operator, &i.Note, &i.Address)
 		if err != nil {
 			errors.New(fmt.Sprintf("[ERR]\tError scanning issue detail row:\t%v", err))
 		}
@@ -172,12 +175,12 @@ func (i *IssueDetail) PostIssueDetail(issueId string) error {
 	)
 
 	sqlStatement = `
-		INSERT INTO issue_detail (issue_id, operator, note) 
-		VALUES ($1,$2,$3)
+		INSERT INTO issue_detail (issue_id, operator, note,address) 
+		VALUES ($1,$2,$3,$4)
 		RETURNING id, timestamp
 `
 
-	err = DbConnection.QueryRow(sqlStatement, issueId, i.Operator, i.Note).Scan(&i.Id, &i.Timestamp)
+	err = DbConnection.QueryRow(sqlStatement, issueId, i.Operator, i.Note, i.Address).Scan(&i.Id, &i.Timestamp)
 	if err != nil {
 		return errors.New(fmt.Sprintf("[ERR]\tError inserting issue detail in db:\t%v", err))
 	}
