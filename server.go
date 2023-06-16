@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -189,8 +188,8 @@ func fiberApp() *fiber.App {
 	// -------------------------
 	router.SetupRoutes(app)
 
-	data, _ := json.MarshalIndent(app.GetRoutes(true), "", "  ")
-	fmt.Print(string(data))
+	//data, _ := json.MarshalIndent(app.GetRoutes(true), "", "  ")
+	//fmt.Print(string(data))
 
 	return app
 }

@@ -11,17 +11,13 @@ require (
 	github.com/go-sql-driver/mysql v1.7.0
 	github.com/gofiber/fiber/v2 v2.42.0
 	github.com/gofiber/websocket/v2 v2.1.4
-	github.com/golang/snappy v0.0.3 // indirect
 	github.com/joho/godotenv v1.5.1
 	github.com/jpillora/overseer v1.1.6
-	github.com/klauspost/cpuid v1.2.1 // indirect
 	github.com/lib/pq v1.10.7
 	github.com/mattn/go-isatty v0.0.18 // indirect
 	github.com/radovskyb/watcher v1.0.7
 	github.com/rivo/uniseg v0.4.4 // indirect
-	github.com/savsgio/gotils v0.0.0-20230208104028-c358bd845dee // indirect
 	github.com/tinylib/msgp v1.1.8 // indirect
-	github.com/valyala/fasthttp v1.45.0 // indirect
 	github.com/xuri/excelize/v2 v2.7.0
 	golang.org/x/crypto v0.7.0
 )

@@ -243,4 +243,21 @@ func Connect() {
 	if err != nil {
 		log.Fatalf(fmt.Sprintf("Error creating Baco DB Table: %v", err))
 	}
+
+	// Favourite table
+	sqlstatement = `
+		create table if not exists favourite
+		(
+			id         uuid      default gen_random_uuid() not null
+				primary key,
+			timestamp  timestamp default now()             not null,
+			console_ip inet                                not null,
+			filename   varchar                             not null
+		);
+`
+	_, err = DbConnection.Exec(sqlstatement)
+	if err != nil {
+		log.Fatalf(fmt.Sprintf("Error creating Favourite table: %v", err))
+	}
+
 }

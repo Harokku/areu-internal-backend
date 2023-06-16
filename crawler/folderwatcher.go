@@ -33,7 +33,7 @@ func WatchRootFromEnv() error {
 	// watcher config
 	// -------------------------
 
-	w.SetMaxEvents(2)
+	w.SetMaxEvents(5)
 	w.IgnoreHiddenFiles(true)
 	w.FilterOps(watcher.Create, watcher.Remove, watcher.Rename, watcher.Move)
 

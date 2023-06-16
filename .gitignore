@@ -27,3 +27,6 @@
 
 # Debug document root
 /docs/*
+
+# Build
+/build/*
