@@ -42,6 +42,14 @@ func SetupRoutes(app *fiber.App) {
 	docs.Get("/:id", handler.Docs{}.GetById)
 	docs.Get("/recent/:num", handler.Docs{}.GetRecent)
 	docs.Get("/serveById/:id", handler.Docs{}.ServeByHash)
+	docs.Get("/serveByFilename/:filename", handler.Docs{}.ServeByFilename)
+
+	// -------------------------
+	// Favourites
+	// -------------------------
+	favourites := v1.Group("/favourites")
+	favourites.Get("/", handler.Favourite{}.GetAll)
+	favourites.Get("/:ip", handler.Favourite{}.GetAggregatedByIp)
 
 	// -------------------------
 	// Content

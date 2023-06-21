@@ -2,6 +2,7 @@ package handler
 
 import (
 	"fmt"
+	"net"
 	"strings"
 )
 
@@ -41,4 +42,13 @@ func ExtractLotto(item string) (string, string) {
 // JoinCallsignLotto return joined vehicle id
 func JoinCallsignLotto(callsign, lotto string) string {
 	return strings.Join([]string{strings.TrimSpace(callsign), strings.TrimSpace(lotto)}, ".")
+}
+
+// validateIp validates ip address
+func validateIp(ip string) bool {
+	// check if string is a well-formed ip address
+	if net.ParseIP(ip) != nil {
+		return true
+	}
+	return false
 }

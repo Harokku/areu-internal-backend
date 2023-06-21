@@ -91,6 +91,32 @@ func (d *Document) GetById(id string) error {
 	}
 }
 
+// GetByFilename Get document by filename
+// if more than one is found return the most recent timestamp
+func (d *Document) GetByFilename(filename string) error {
+	var (
+		err          error
+		row          *sql.Row
+		sqlStatement string
+	)
+
+	sqlStatement = `SELECT id,hash,filename,displayname,category,"isDir",creationtime 
+					FROM docs 
+					WHERE displayname ILIKE $1
+					ORDER BY creationtime DESC 
+					LIMIT 1`
+
+	row = DbConnection.QueryRow(sqlStatement, fmt.Sprintf("%s%%", filename))
+	switch err = row.Scan(&d.Id, &d.Hash, &d.FileName, &d.DisplayName, &d.Category, &d.IsDir, &d.CreationTime); err {
+	case sql.ErrNoRows:
+		return errors.New("no row where retrieved")
+	case nil:
+		return nil
+	default:
+		return errors.New(fmt.Sprintf("error retrieving doc from db: %v\n", err))
+	}
+}
+
 // GetRecent Get most recent {num} documents with {mode} aggregation (all, by main category...)
 func (d Document) GetRecent(num int, mode string, dest *[]Document) error {
 	var (

@@ -4,6 +4,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"internal-backend/database"
 	"log"
+	"net/url"
 	"path/filepath"
 	"strconv"
 )
@@ -83,9 +84,10 @@ func (d Docs) ServeById(ctx *fiber.Ctx) error {
 // ServeByHash actually retrieve file from server by DB hash (hash from param)
 func (d Docs) ServeByHash(ctx *fiber.Ctx) error {
 	var (
-		err   error
-		hash  string            //Document id to retrieve
-		dInfo database.Document //Document info retrieved from bd
+		err        error
+		hash       string             //Document id to retrieve
+		dInfo      database.Document  //Document info retrieved from bd
+		dFavourite database.Favourite //Favourite info retrieved from bd
 	)
 
 	hash = ctx.Params("id")
@@ -100,6 +102,54 @@ func (d Docs) ServeByHash(ctx *fiber.Ctx) error {
 	if err != nil {
 		log.Printf(ErrStringMsg("docs/ServeByHash while retrieving document", err))
 		return ctx.SendStatus(fiber.StatusNotFound)
+	}
+
+	// Build dFavourite item to post to db
+	dFavourite.ConsoleIp = ctx.IP()
+	dFavourite.Filename = dInfo.DisplayName
+
+	// Add favourite to db
+	err = dFavourite.PostFavourite()
+	if err != nil {
+		log.Printf(ErrStringMsg("docs/ServeByHash while adding favourite", err))
+		// Don't return error, just log it and serve file to client
+	}
+
+	// Send file to client
+	return ctx.Download(filepath.FromSlash(dInfo.FileName), dInfo.DisplayName)
+}
+
+// ServeByFilename actually retrieve file from server by filename (filename url encoded from param)
+func (d Docs) ServeByFilename(ctx *fiber.Ctx) error {
+	var (
+		err        error
+		filename   string             //Document filename to retrieve
+		dInfo      database.Document  //Document info retrieved from bd
+		dFavourite database.Favourite //Favourite info retrieved from bd
+	)
+
+	filename, err = url.QueryUnescape(ctx.Params("filename"))
+	if err != nil {
+		log.Printf(ErrString("docs/ServeByFilename while parsing input from body"))
+		return ctx.SendStatus(fiber.StatusBadRequest)
+	}
+
+	// Retrieve document meta from db
+	err = dInfo.GetByFilename(filename)
+	if err != nil {
+		log.Printf(ErrStringMsg("docs/ServeByFilename while retrieving document", err))
+		return ctx.SendStatus(fiber.StatusNotFound)
+	}
+
+	// Build dFavourite item to post to db
+	dFavourite.ConsoleIp = ctx.IP()
+	dFavourite.Filename = dInfo.DisplayName
+
+	// Add favourite to db
+	err = dFavourite.PostFavourite()
+	if err != nil {
+		log.Printf(ErrStringMsg("docs/ServeByHash while adding favourite", err))
+		// Don't return error, just log it and serve file to client
 	}
 
 	// Send file to client
