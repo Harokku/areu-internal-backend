@@ -80,6 +80,68 @@ func (f Favourite) GetAggregatedByConsoleIp(ip string, dest *[]Favourite) error 
 	return nil
 }
 
+// GetAggregatedByFunction Get favourite by function, aggregated by filename
+func (f Favourite) GetAggregatedByFunction(function string, dest *[]Favourite) error {
+	var (
+		err          error
+		rows         *sql.Rows
+		sqlStatement string
+	)
+
+	sqlStatement = `select filename, count(filename) as count
+					from favourite
+					where console_ip IN (SELECT console_ip
+										 FROM ip_function_match
+										 WHERE function = $1)
+					group by filename
+					order by count desc
+					limit 10;`
+
+	rows, err = DbConnection.Query(sqlStatement, function)
+	if err != nil {
+		return errors.New(fmt.Sprintf("Error retrieving aggregated favourites by function: %v\n", err))
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+		var f Favourite
+		err = rows.Scan(&f.Filename, &f.Count)
+		if err != nil {
+			return errors.New(fmt.Sprintf("Error scanning row: %v\n", err))
+		}
+		*dest = append(*dest, f)
+	}
+
+	return nil
+}
+
+// GetFunctionByIp Get function by console IP
+func (f Favourite) GetFunctionByIp(ip string) (function string, err error) {
+	var (
+		//err          error
+		row          *sql.Row
+		sqlStatement string
+		//function     string
+	)
+
+	sqlStatement = `
+					SELECT function
+					FROM ip_function_match
+					WHERE console_ip = $1
+`
+
+	row = DbConnection.QueryRow(sqlStatement, ip)
+	switch err = row.Scan(&function); err {
+	case sql.ErrNoRows:
+		return "", errors.New(fmt.Sprintf("No function found for IP: %v\n", ip))
+	case nil:
+		return function, nil
+	default:
+		return "", errors.New(fmt.Sprintf("Error retrieving function for IP: %v\n", err))
+	}
+}
+
 // PostFavourite append new favourite entry to db
 func (f Favourite) PostFavourite() error {
 	var (

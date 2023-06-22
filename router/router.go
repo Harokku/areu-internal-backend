@@ -49,7 +49,8 @@ func SetupRoutes(app *fiber.App) {
 	// -------------------------
 	favourites := v1.Group("/favourites")
 	favourites.Get("/", handler.Favourite{}.GetAll)
-	favourites.Get("/:ip", handler.Favourite{}.GetAggregatedByIp)
+	favourites.Get("/byIp/:ip", handler.Favourite{}.GetAggregatedByIp)
+	favourites.Get("/byFunction/ip/:ip", handler.Favourite{}.GetAggregatedByFunctionFromIp)
 
 	// -------------------------
 	// Content

@@ -260,4 +260,21 @@ func Connect() {
 		log.Fatalf(fmt.Sprintf("Error creating Favourite table: %v", err))
 	}
 
+	// ip function match table
+	sqlstatement = `
+		create table if not exists ip_function_match
+		(
+			id          uuid default gen_random_uuid() not null
+				primary key,
+			console_ip inet                           not null
+				unique,
+			function    varchar                        not null
+		);
+		
+		comment on table ip_function_match is 'Contain range matches of operator ip address with it''s function';
+`
+	_, err = DbConnection.Exec(sqlstatement)
+	if err != nil {
+		log.Fatalf(fmt.Sprintf("Error creating IP function match table: %v", err))
+	}
 }
