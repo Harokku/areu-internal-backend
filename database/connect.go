@@ -277,4 +277,26 @@ func Connect() {
 	if err != nil {
 		log.Fatalf(fmt.Sprintf("Error creating IP function match table: %v", err))
 	}
+
+	// ePCR Issue table
+	sqlstatement = `
+create table if not exists epcr_issues
+(
+    id         uuid default gen_random_uuid() not null
+        constraint epcr_issues_pk
+            primary key,
+        timestamp  timestamp default now()             not null,
+    	ip_address inet default '127.0.0.1'::inet not null,
+    	vehicle_id varchar                        not null,
+    	issue      varchar                        not null
+);
+
+comment on table epcr_issues is 'Issue table for ePCR apps';
+
+comment on column epcr_issues.ip_address is 'Ip address of the client';
+
+comment on column epcr_issues.issue is 'Issue text';
+
+
+`
 }

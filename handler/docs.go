@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"github.com/gofiber/fiber/v2"
 	"internal-backend/database"
 	"log"
@@ -58,9 +59,10 @@ func (d Docs) GetById(ctx *fiber.Ctx) error {
 // ServeById actually retrieve file from server by DB id (id from param)
 func (d Docs) ServeById(ctx *fiber.Ctx) error {
 	var (
-		err   error
-		id    string            //Document id to retrieve
-		dInfo database.Document //Document info retrieved from bd
+		err      error
+		id       string            //Document id to retrieve
+		dInfo    database.Document //Document info retrieved from bd
+		blobName string            //Blob filename extracted from path for mime association
 	)
 
 	id = ctx.Params("id")
@@ -77,8 +79,12 @@ func (d Docs) ServeById(ctx *fiber.Ctx) error {
 		return ctx.SendStatus(fiber.StatusNotFound)
 	}
 
+	// Build blob name
+	blobName = fmt.Sprintf("%s%s", dInfo.DisplayName, filepath.Ext(dInfo.FileName))
+	fmt.Println(blobName)
+
 	// Send file to client
-	return ctx.Download(filepath.FromSlash(dInfo.FileName), dInfo.DisplayName)
+	return ctx.Download(filepath.FromSlash(dInfo.FileName), blobName)
 }
 
 // ServeByHash actually retrieve file from server by DB hash (hash from param)
@@ -88,6 +94,7 @@ func (d Docs) ServeByHash(ctx *fiber.Ctx) error {
 		hash       string             //Document id to retrieve
 		dInfo      database.Document  //Document info retrieved from bd
 		dFavourite database.Favourite //Favourite info retrieved from bd
+		blobName   string             //Blob filename extracted from path for mime association
 	)
 
 	hash = ctx.Params("id")
@@ -115,8 +122,11 @@ func (d Docs) ServeByHash(ctx *fiber.Ctx) error {
 		// Don't return error, just log it and serve file to client
 	}
 
+	// Build blob name
+	blobName = fmt.Sprintf("%s%s", dInfo.DisplayName, filepath.Ext(dInfo.FileName))
+
 	// Send file to client
-	return ctx.Download(filepath.FromSlash(dInfo.FileName), dInfo.DisplayName)
+	return ctx.Download(filepath.FromSlash(dInfo.FileName), blobName)
 }
 
 // ServeByFilename actually retrieve file from server by filename (filename url encoded from param)

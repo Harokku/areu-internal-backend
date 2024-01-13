@@ -84,6 +84,12 @@ func SetupRoutes(app *fiber.App) {
 	issue.Post("/detail", handler.Issue{}.PostDetail)
 
 	// -------------------------
+	// ePCR Issue
+	// -------------------------
+	epcrIssue := v1.Group("/epcrissue")
+	epcrIssue.Post("/", handler.EpcrIssue{}.PostEpctIssue)
+
+	// -------------------------
 	// Websocket endpoints
 	// -------------------------
 	ws := v1.Group("/ws")
