@@ -2,6 +2,7 @@ package handler
 
 import (
 	"fmt"
+	"github.com/gofiber/fiber/v2"
 	"net"
 	"strings"
 )
@@ -51,4 +52,9 @@ func validateIp(ip string) bool {
 		return true
 	}
 	return false
+}
+
+// Ipfy return client's ip address (meant to be used on local network only and not be exposed over the internet)
+func Ipfy(ctx *fiber.Ctx) error {
+	return ctx.Status(fiber.StatusOK).SendString(ctx.IP())
 }

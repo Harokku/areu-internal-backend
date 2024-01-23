@@ -4,6 +4,8 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"internal-backend/auth"
 	"internal-backend/database"
+	"internal-backend/utils"
+	"strings"
 )
 
 func Login(ctx *fiber.Ctx) error {
@@ -62,4 +64,23 @@ func Login(ctx *fiber.Ctx) error {
 		"message": "Success login",
 		"data":    t,
 	})
+}
+
+func AuthEpcrIssueModule(ctx *fiber.Ctx) error {
+	// Read auth ip list from env and convert to an array at |
+	authIps, err := utils.ReadEnv("EPCR_IP_LIST")
+	if err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).SendString("Auth list not set on server")
+	}
+	authIpsArray := strings.Split(authIps, "|")
+
+	// Check if client ip is in the auth list
+	for _, ip := range authIpsArray {
+		// if found respond with ok
+		if ip == ctx.IP() {
+			return ctx.SendStatus(fiber.StatusOK)
+		}
+	}
+	// Otherwise send a 401 code
+	return ctx.SendStatus(fiber.StatusUnauthorized)
 }

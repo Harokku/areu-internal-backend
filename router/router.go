@@ -28,11 +28,18 @@ func SetupRoutes(app *fiber.App) {
 	})
 
 	// -------------------------
+	// Helper routes
+	// -------------------------
+	helper := v1.Group("/helper")
+	helper.Get("/ip", handler.Ipfy)
+
+	// -------------------------
 	// Auth
 	// -------------------------
 
 	auth := v1.Group("/auth")
 	auth.Post("/login", handler.Login)
+	auth.Get("/epcr", handler.AuthEpcrIssueModule)
 
 	// -------------------------
 	// Documents
