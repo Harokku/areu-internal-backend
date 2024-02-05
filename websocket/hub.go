@@ -13,6 +13,7 @@ type client struct {
 const (
 	Filewatcher = "Filewatcher event"
 	Issue       = "Issue Event"
+	News        = "News feed Event"
 )
 
 var clients = make(map[*websocket.Conn]client) // Note: although large maps with pointer-like types (e.g. strings) as keys are slow, using pointers themselves as keys is acceptable and fast

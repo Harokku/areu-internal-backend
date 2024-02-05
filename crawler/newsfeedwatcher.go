@@ -7,6 +7,7 @@ import (
 	"github.com/xuri/excelize/v2"
 	"internal-backend/database"
 	"internal-backend/utils"
+	"internal-backend/websocket"
 	"log"
 	"time"
 )
@@ -58,6 +59,13 @@ func newsDbUpdate(file string) error {
 	err = database.NewsFeed{}.BulkCreate(res)
 	if err != nil {
 		return errors.New(fmt.Sprintf("newsfeedwatcher/newsfeedDbUpdate returned error while bulk creating table: %v\n", err))
+	}
+
+	// Broadcast news to connected clients
+	websocket.Broadcast <- map[string]interface{}{
+		"id":        websocket.News,
+		"operation": "Update",
+		"data":      res,
 	}
 
 	return nil

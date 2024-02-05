@@ -115,4 +115,5 @@ func SetupRoutes(app *fiber.App) {
 	})
 	ws.Get("/", websocket2.DocsUpdate())
 	ws.Get("/issue", websocket2.IssueUpdate())
+	ws.Get("/newsfeed", websocket2.NewsUpdate())
 }
