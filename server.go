@@ -132,6 +132,13 @@ func main() {
 	}
 	log.Println("Fleet watcher initialized")
 
+	log.Println("Starting news feed watcher")
+	err = crawler.WatchNewsTableFromEnv()
+	if err != nil {
+		log.Fatalf("Error starting news feed watcher: %s", err)
+	}
+	log.Println("News feed watcher initialized")
+
 	initDuration := time.Since(initStartTime) //calculate total startup time
 	log.Printf("Enviromnent initialized in %s", initDuration)
 
@@ -159,6 +166,7 @@ func fiberApp() *fiber.App {
 	app.Static("/", "./static")
 	app.Static("/intranet", "./static/intranet")
 	app.Static("/issuedashboard", "./static/issuedashboad")
+	app.Static("/newsfeed", "./static/newsfeed")
 
 	// -------------------------
 	// Debug routes

@@ -97,6 +97,12 @@ func SetupRoutes(app *fiber.App) {
 	epcrIssue.Post("/", handler.EpcrIssue{}.PostEpctIssue)
 
 	// -------------------------
+	// News Feed
+	// -------------------------
+	newsFeed := v1.Group("/newsfeed")
+	newsFeed.Get("/", handler.News{}.GetAll)
+
+	// -------------------------
 	// Websocket endpoints
 	// -------------------------
 	ws := v1.Group("/ws")

@@ -15,7 +15,7 @@ func WatchRootFromEnv() error {
 		w            *watcher.Watcher
 		err          error
 		docRoot      string   //Documents disk path from env
-		docRootArray []string //Documents array og path to check
+		docRootArray []string //Documents array of path to check
 	)
 
 	// -------------------------

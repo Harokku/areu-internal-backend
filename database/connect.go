@@ -299,4 +299,25 @@ comment on column epcr_issues.issue is 'Issue text';
 
 
 `
+	_, err = DbConnection.Exec(sqlstatement)
+	if err != nil {
+		log.Fatalf(fmt.Sprintf("Error creating epcr issue table: %v", err))
+	}
+
+	// News feed table
+	sqlstatement = `
+create table if not exists news_feed
+(
+	id uuid default gen_random_uuid() not null 
+	constraint news_feed_pk primary key,
+	timestamp varchar not null,
+	title varchar not null,
+	news varchar not null
+)`
+
+	_, err = DbConnection.Exec(sqlstatement)
+	if err != nil {
+		log.Fatalf(fmt.Sprintf("Error creating news feed table: %v", err))
+	}
+
 }
