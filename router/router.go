@@ -95,6 +95,7 @@ func SetupRoutes(app *fiber.App) {
 	// -------------------------
 	epcrIssue := v1.Group("/epcrissue")
 	epcrIssue.Post("/", handler.EpcrIssue{}.PostEpctIssue)
+	epcrIssue.Get("/report", handler.EpcrIssue{}.GenerateAndDownloadReport)
 
 	// -------------------------
 	// News Feed

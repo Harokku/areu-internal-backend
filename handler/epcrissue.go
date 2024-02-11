@@ -2,9 +2,11 @@ package handler
 
 import (
 	"github.com/gofiber/fiber/v2"
+	"github.com/xuri/excelize/v2"
 	"internal-backend/database"
 	"log"
 	"net"
+	"strconv"
 )
 
 type EpcrIssue struct {
@@ -40,4 +42,49 @@ func (i EpcrIssue) PostEpctIssue(ctx *fiber.Ctx) error {
 		"status":  "success",
 		"message": "epcr issue added to db",
 	})
+}
+
+func (i EpcrIssue) GenerateAndDownloadReport(ctx *fiber.Ctx) error {
+	issues, err := database.EpcrIssue{}.GetAll()
+	if err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).SendString(err.Error())
+	}
+
+	f := excelize.NewFile()
+	index, err := f.NewSheet("ePCR-Issues")
+	if err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).SendString(err.Error())
+	}
+
+	f.SetActiveSheet(index)
+
+	// Write headers to xlsx
+	f.SetCellValue("ePCR-Issues", "A1", "Data e ora")
+	f.SetCellValue("ePCR-Issues", "B1", "MSB")
+	f.SetCellValue("ePCR-Issues", "C1", "Problema riscontrato")
+	f.SetCellValue("ePCR-Issues", "D1", "Ip Operatore che rileva")
+
+	for i2, issue := range issues {
+		f.SetCellValue("ePCR-Issues", "A"+strconv.Itoa(i2+2), issue.Timestamp)
+		f.SetCellValue("ePCR-Issues", "B"+strconv.Itoa(i2+2), issue.VehicleId)
+		f.SetCellValue("ePCR-Issues", "C"+strconv.Itoa(i2+2), issue.Text)
+		f.SetCellValue("ePCR-Issues", "D"+strconv.Itoa(i2+2), issue.IpAddress.To4().String())
+	}
+
+	// Delete default Sheet1
+	err = f.DeleteSheet("Sheet1")
+	if err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).SendString(err.Error())
+	}
+
+	// Set headers for file download
+	ctx.Set(fiber.HeaderContentDisposition, `attachment; filename="EpcrIssues.xlsx"`)
+	ctx.Set(fiber.HeaderContentType, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+
+	// Write excel file content to fiber response
+	if err := f.Write(ctx.Response().BodyWriter()); err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).SendString(err.Error())
+	}
+
+	return nil
 }
